@@ -1,16 +1,49 @@
-# zelo_mobile
+# ZELO
 
-A new Flutter project.
+Aplicativo Android para apoio experimental à segurança de motociclistas.
 
-## Getting Started
+## Estado atual
 
-This project is a starting point for a Flutter application.
+Esta versão inicia a fundação do aplicativo: tema baseado em `paleta.md`,
+navegação principal e estrutura inicial organizada por funcionalidades. As
+telas de contatos, histórico e ajustes são marcadas como em desenvolvimento.
+O app ainda não monitora trajetos nem envia pedidos de ajuda.
 
-A few resources to get you started if this is your first Flutter project:
+## Estrutura Flutter
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+```text
+lib/
+  app/
+    router/      # Rotas e navegação principal
+    theme/       # Cores e tema Material 3
+  features/
+    home/        # Início
+    contacts/    # Contatos de emergência
+    history/     # Histórico
+    settings/    # Ajustes
+  shared/
+    widgets/     # Componentes compartilhados
+  main.dart      # Inicialização do app e Riverpod
+test/
+```
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Novos módulos devem seguir a organização por feature da documentação do
+projeto, acrescentando camadas de domínio, aplicação e dados quando suas
+funcionalidades forem implementadas.
+
+## Executar
+
+Com o Flutter instalado:
+
+```sh
+flutter pub get
+flutter run -d <android-device>
+```
+
+## Validar
+
+```sh
+dart format --set-exit-if-changed lib test
+flutter analyze
+flutter test
+```
