@@ -13,6 +13,17 @@ e o projeto inicia a linha de desenvolvimento da versão `1.0.0`.
 
 ### Adicionado
 
+- MVP operacional de desenvolvimento: contatos, preparação, sessões Android,
+  detector experimental, alerta persistido e SOS com compartilhamento assistido.
+- SQLCipher, journal nativo criptografado, GPS pontual e fotos locais AES-GCM.
+- Histórico, preservação, retenção, notas, anexos, exportação e tombstones.
+- Outbox, sincronização Firestore com revisões e conflitos explícitos, Rules
+  e testes locais de isolamento, idempotência e exclusão.
+- Perfil, exclusão retomável com bloqueio de recriação, privacidade, demo e logs.
+- Integrações Android/Firebase em emuladores, testes JVM e acessibilidade.
+- Assinatura release própria obrigatória e exemplo de configuração sem segredos.
+- ADR-002 e relatório do MVP com gates de produção ainda pendentes.
+
 - Firebase Core/Auth e configuração Google Services para Android.
 - Telas de boas-vindas, cadastro, entrada, recuperação e verificação de e-mail.
 - Guards de autenticação/verificação, atualização do token e saída da conta.
@@ -27,8 +38,7 @@ e o projeto inicia a linha de desenvolvimento da versão `1.0.0`.
 - Estrutura inicial Flutter organizada por funcionalidades.
 - Navegação principal para Início, Contatos, Histórico e Ajustes.
 - Tema Material 3 com as cores definidas em `paleta.md`.
-- Telas informativas que deixam explícito que proteção e SOS ainda não estão
-  disponíveis.
+- Telas operacionais com estado confirmado pelo Android e SOS assistido.
 - Testes de widgets para a tela inicial e navegação.
 - README com visão geral, escopo planejado, limitações e instruções de
   desenvolvimento.

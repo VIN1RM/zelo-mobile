@@ -1,4 +1,14 @@
 pluginManagement {
+    // Kotlin 2.4 metadata requires R8 >= 9.1.29, including with AGP 8.x.
+    // https://developer.android.com/build/kotlin-support
+    buildscript {
+        repositories {
+            google()
+            mavenCentral()
+            maven { url = uri("https://storage.googleapis.com/r8-releases/raw") }
+        }
+        dependencies { classpath("com.android.tools:r8:9.1.29") }
+    }
     val flutterSdkPath =
         run {
             val properties = java.util.Properties()

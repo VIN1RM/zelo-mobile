@@ -2,6 +2,12 @@
 
 ## Configuração
 
+Atualização: perfil e exclusão retomável estão implementados. A integração
+Auth/Firestore foi exercitada com emuladores locais, inclusive verificação e
+exclusão. Entrega real de e-mail continua pendente. A API Firestore do projeto
+de produção retornou desativada/não utilizada; banco e regras não foram
+implantados. Ver [estado do MVP](estado-mvp.md).
+
 O responsável criou o projeto `zelo-mobile-73335`, cadastrou o aplicativo
 `br.com.zelo.zelo_mobile`, forneceu `android/app/google-services.json` e
 habilitou o provedor E-mail/senha no console.

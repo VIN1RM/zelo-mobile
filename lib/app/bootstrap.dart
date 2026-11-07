@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -14,8 +15,11 @@ final firebaseInitializationProvider = FutureProvider<void>((ref) async {
   }
   // Android resources are generated from android/app/google-services.json.
   await Firebase.initializeApp();
+  FirebaseFirestore.instance.settings = const Settings(
+    persistenceEnabled: false,
+  );
   await FirebaseAuth.instance.setLanguageCode('pt-BR');
-}, retry: (count, error) => null);
+}, retry: (retryCount, error) => null);
 
 class ZeloBootstrap extends ConsumerWidget {
   const ZeloBootstrap({super.key});

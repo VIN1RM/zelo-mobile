@@ -22,6 +22,16 @@ Análise em 7 de novembro de 2026. Fonte de requisitos: leitura integral das
 roadmap e matriz de rastreabilidade. Comparação com código Dart, testes,
 dependências, configurações Android, README, CHANGELOG e paleta.
 
+## Implementação na develop — terceiro incremento
+
+O inventário e as etapas abaixo registram o diagnóstico anterior. Os fluxos
+operacionais agora estão implementados em código, com SQLite/Outbox/Firestore,
+serviço Kotlin, contatos, alerta, SOS, histórico, anexos e conta. Consulte o
+[estado atual](estado-mvp.md) e a [ADR-002](adr/ADR-002-mvp-offline-e-servico-android.md).
+O restante para lançamento envolve implantação Firestore, assinatura, política
+com responsável definido, testes reais de e-mail e aceites físicos/calibração.
+Não houve commit ou publicação neste incremento.
+
 ## 1. Entendimento do produto
 
 O ZELO é um aplicativo Android de apoio experimental à segurança de

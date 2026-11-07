@@ -2,6 +2,14 @@
 
 ## Implementado neste ciclo
 
+**Atualização do terceiro incremento:** há serviço foreground, sensores,
+journal criptografado, alerta persistido e integração Android automatizada.
+O teste em emulador API 35 comprovou recebimento de amostras, timeout com a
+interface em segundo plano e confirmação durável de eventos. Os parágrafos
+anteriores abaixo descrevem o primeiro incremento. A POC em aparelho físico
+continua aberta, inclusive bateria, fabricantes e calibração do detector.
+Ver [estado atual](estado-mvp.md).
+
 Em Ajustes → Diagnóstico do aparelho é possível consultar API Android,
 presença de acelerômetro/giroscópio, permissão geral de notificações e isenção
 de otimização de bateria. Ao voltar dos ajustes do sistema a consulta é refeita.

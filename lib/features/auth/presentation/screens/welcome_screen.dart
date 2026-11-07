@@ -21,7 +21,7 @@ class WelcomeScreen extends StatelessWidget {
       ),
       const SizedBox(height: 16),
       const Text(
-        'Nesta versão, monitoramento e SOS ainda não estão disponíveis.',
+        'Entre para preparar o monitoramento experimental e acessar o SOS assistido.',
       ),
       const SizedBox(height: 24),
       FilledButton(
