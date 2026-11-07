@@ -1,3 +1,4 @@
+import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/platform/device_permissions.dart';
@@ -13,18 +14,20 @@ class PreparationScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          const Text(
-            'Você controla quando o monitoramento começa e termina. Confira os recursos antes de iniciar.',
+          const SectionHeading(
+            'Vamos deixar tudo pronto',
+            subtitle:
+                'Você controla quando o monitoramento começa e termina. Confira os recursos abaixo antes de iniciar.',
           ),
           ListTile(
-            leading: const Icon(Icons.people_outline),
+            leading: const IconBadge(AppIcons.peopleOutline),
             title: Text('${data.contacts.length} contatos cadastrados'),
             subtitle: const Text('Pelo menos um é obrigatório.'),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const Icon(AppIcons.chevronRight),
             onTap: () => context.push('/contatos'),
           ),
           ListTile(
-            leading: const Icon(Icons.notifications_outlined),
+            leading: const IconBadge(AppIcons.notificationsOutlined),
             title: const Text('Permitir notificações'),
             subtitle: const Text(
               'Necessárias para avisos e ações do alerta com a tela bloqueada.',
@@ -35,7 +38,7 @@ class PreparationScreen extends StatelessWidget {
             }),
           ),
           ListTile(
-            leading: const Icon(Icons.location_on_outlined),
+            leading: const IconBadge(AppIcons.locationOnOutlined),
             title: const Text('Permitir localização pontual'),
             subtitle: const Text(
               'Consultada ao iniciar e em emergências. Sem GPS, o monitoramento local continua com essa limitação.',
@@ -45,9 +48,9 @@ class PreparationScreen extends StatelessWidget {
             }),
           ),
           ListTile(
-            leading: const Icon(Icons.sensors),
+            leading: const IconBadge(AppIcons.sensors),
             title: const Text('Conferir sensores e bateria'),
-            trailing: const Icon(Icons.chevron_right),
+            trailing: const Icon(AppIcons.chevronRight),
             onTap: () => context.push('/ajustes/diagnostico'),
           ),
           const SizedBox(height: 20),

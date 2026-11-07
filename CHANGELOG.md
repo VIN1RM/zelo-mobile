@@ -45,5 +45,15 @@ e o projeto inicia a linha de desenvolvimento da versão `1.0.0`.
 
 ### Alterado
 
+- Interface reorganizada com componentes e catálogo de ícones compartilhados,
+  cartões de estado, hierarquia visual, filtros adaptáveis e ações fixas no alerta.
+- Estados, erros, posições e canais apresentados em português brasileiro;
+  localização pt-BR dos componentes Flutter, datas e resumos de compartilhamento.
+- Sincronização com orientação sobre funcionamento automático, indicação de
+  progresso e identificação dos contatos nas pendências.
+- Revisão visual automatizada de nove telas, incluindo fonte ampliada em 200%.
+- Cadastro de contatos com validação junto aos campos e regras compartilhadas;
+  feedback sem acúmulo de avisos e títulos de histórico mais diretos.
+
 - Kotlin atualizado para 2.4.21, necessário para os metadados do Firebase Auth atual.
 - Configuração Kotlin migrada para `compilerOptions`.

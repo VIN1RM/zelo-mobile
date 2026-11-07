@@ -1,3 +1,4 @@
+import '../../../../shared/presentation/app_icons.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,18 +33,52 @@ class AlertScreen extends StatelessWidget {
             automaticallyImplyLeading: false,
             title: const Text('Possível acidente'),
           ),
+          bottomNavigationBar: incident?.pending == true
+              ? ActionFooter(
+                  children: [
+                    FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppTone.positive.foreground,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed:
+                          incident?.pending == true && !data.emergencyBusy
+                          ? () => uiAction(
+                              context,
+                              () => app.resolve(id, 'CANCELLED'),
+                            )
+                          : null,
+                      child: const Text('Estou bem'),
+                    ),
+                    const SizedBox(height: 16),
+                    FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: AppTone.danger.foreground,
+                        foregroundColor: Colors.white,
+                      ),
+                      onPressed:
+                          incident?.pending == true && !data.emergencyBusy
+                          ? () => uiAction(
+                              context,
+                              () => app.resolve(id, 'HELP_REQUESTED'),
+                            )
+                          : null,
+                      child: const Text('Preciso de ajuda'),
+                    ),
+                  ],
+                )
+              : null,
           body: SafeArea(
             child: ListView(
               padding: const EdgeInsets.all(24),
               children: [
-                const Icon(
-                  Icons.warning_amber_rounded,
-                  size: 72,
-                  color: Colors.red,
-                ),
+                if (incident?.pending == true) ...[
+                  AlertCountdown(seconds: seconds),
+                  const SizedBox(height: 24),
+                ],
                 Text(
                   incident?.pending == true
-                      ? 'Responda em $seconds segundos'
+                      ? 'Você está bem?'
                       : outcomeLabel(
                           incident?.outcome ?? 'Registro indisponível',
                         ),
@@ -51,29 +86,14 @@ class AlertScreen extends StatelessWidget {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 20),
-                const Text(
-                  'Não confirmamos que houve um acidente. Escolha uma opção. Sem resposta, será preparada ajuda assistida, sem envio automático.',
+                const StatusPanel(
+                  title: 'Detectamos um movimento suspeito',
+                  message:
+                      'Isso não confirma um acidente. Se estiver bem, cancele o alerta. Sem resposta, o ZELO preparará um pedido de ajuda; nenhuma mensagem será enviada automaticamente.',
+                  icon: AppIcons.infoOutlineRounded,
+                  tone: AppTone.warning,
                 ),
                 const SizedBox(height: 24),
-                FilledButton(
-                  onPressed: incident?.pending == true && !data.emergencyBusy
-                      ? () => uiAction(
-                          context,
-                          () => app.resolve(id, 'CANCELLED'),
-                        )
-                      : null,
-                  child: const Text('Estou bem'),
-                ),
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: incident?.pending == true && !data.emergencyBusy
-                      ? () => uiAction(
-                          context,
-                          () => app.resolve(id, 'HELP_REQUESTED'),
-                        )
-                      : null,
-                  child: const Text('Preciso de ajuda'),
-                ),
                 if (incident?.pending != true)
                   TextButton(
                     onPressed: () => context.go('/inicio'),
@@ -136,21 +156,23 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
           title: const Text('Pedir ajuda'),
           leading: IconButton(
             tooltip: 'Voltar ao início',
-            icon: const Icon(Icons.arrow_back),
+            icon: const Icon(AppIcons.arrowBack),
             onPressed: () => context.go('/inicio'),
           ),
         ),
         body: ListView(
           padding: const EdgeInsets.all(24),
           children: [
-            Text(
-              incident.label,
-              style: Theme.of(context).textTheme.headlineSmall,
+            SectionHeading(
+              'Vamos preparar sua mensagem',
+              subtitle: '${incident.label} · ${outcomeLabel(incident.outcome)}',
             ),
-            Text(outcomeLabel(incident.outcome)),
             const SizedBox(height: 12),
-            const Text(
-              'Envio não confirmado. Você precisa concluir o envio no aplicativo escolhido. Se não houver canal disponível, copie a mensagem.',
+            const StatusPanel(
+              title: 'Você conclui o envio',
+              message:
+                  'Escolha um contato, confira a mensagem e abra o canal desejado. O ZELO não confirma envio ou entrega.',
+              icon: AppIcons.sendOutlined,
             ),
             const SizedBox(height: 16),
             if (data.contacts.isNotEmpty)
@@ -171,15 +193,25 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                     : (value) => setState(() => contactId = value),
               ),
             const SizedBox(height: 16),
-            SelectableText(
-              ShareEmergency.message(incident, name, DateTime.now().toUtc()),
+            const SectionHeading('Confira a mensagem'),
+            SectionCard(
+              child: SelectableText(
+                ShareEmergency.message(incident, name, DateTime.now().toUtc()),
+              ),
             ),
+            if (data.contacts.isEmpty)
+              const Padding(
+                padding: EdgeInsets.only(top: 12),
+                child: Text(
+                  'Você ainda não tem contatos cadastrados. Copie a mensagem e escolha o destinatário no aplicativo de sua preferência.',
+                ),
+              ),
             const SizedBox(height: 20),
             FilledButton.icon(
               onPressed: sharing || contact?.phone == null
                   ? null
                   : () => share('whatsapp'),
-              icon: const Icon(Icons.chat_outlined),
+              icon: const Icon(AppIcons.chatOutlined),
               label: const Text('Abrir WhatsApp'),
             ),
             const SizedBox(height: 12),
@@ -187,12 +219,12 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
               onPressed: sharing || contact?.email == null
                   ? null
                   : () => share('email'),
-              icon: const Icon(Icons.email_outlined),
+              icon: const Icon(AppIcons.emailOutlined),
               label: const Text('Abrir e-mail'),
             ),
             TextButton.icon(
               onPressed: sharing ? null : () => share('copy'),
-              icon: const Icon(Icons.copy),
+              icon: const Icon(AppIcons.copy),
               label: const Text('Copiar mensagem'),
             ),
             TextButton(

@@ -1,3 +1,4 @@
+import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -16,31 +17,34 @@ class ContactsScreen extends StatelessWidget {
             onPressed: data.contacts.length >= 3 || data.busy
                 ? null
                 : () => context.push('/contatos/novo'),
-            icon: const Icon(Icons.person_add_alt_1),
+            icon: const Icon(AppIcons.personAddAlt1),
           ),
         ],
       ),
       body: data.contacts.isEmpty
-          ? Center(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text(
-                      'Cadastre pelo menos um contato para iniciar a proteção. Você pode ter até três.',
-                    ),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: () => context.push('/contatos/novo'),
-                      child: const Text('Adicionar contato'),
-                    ),
-                  ],
+          ? ListView(
+              padding: const EdgeInsets.all(20),
+              children: [
+                AppEmptyState(
+                  icon: AppIcons.peopleOutlineRounded,
+                  title: 'Quem pode ajudar você?',
+                  message:
+                      'Adicione até três pessoas de confiança. Você precisa de pelo menos um contato para iniciar a proteção.',
+                  action: FilledButton.icon(
+                    onPressed: () => context.push('/contatos/novo'),
+                    icon: const Icon(AppIcons.personAddAlt1),
+                    label: const Text('Adicionar contato'),
+                  ),
                 ),
-              ),
+              ],
             )
           : ReorderableListView.builder(
               padding: const EdgeInsets.all(16),
+              header: SectionHeading(
+                'Sua rede de apoio',
+                subtitle:
+                    '${data.contacts.length} de 3 contatos · O primeiro tem prioridade. Pressione e segure um cartão para mudar a ordem.',
+              ),
               itemCount: data.contacts.length,
               onReorder: (oldIndex, newIndex) async {
                 if (newIndex > oldIndex) newIndex--;
@@ -64,7 +68,15 @@ class ContactsScreen extends StatelessWidget {
                       children: [
                         ListTile(
                           contentPadding: EdgeInsets.zero,
-                          leading: CircleAvatar(child: Text('${index + 1}')),
+                          leading: CircleAvatar(
+                            backgroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primaryContainer,
+                            foregroundColor: Theme.of(
+                              context,
+                            ).colorScheme.primary,
+                            child: Text('${index + 1}'),
+                          ),
                           title: Text(contact.name),
                           subtitle: Text(
                             '${index == 0 ? 'Contato principal\n' : ''}${contact.phone ?? ''}${contact.email == null ? '' : '\n${contact.email}'}',
@@ -78,7 +90,7 @@ class ContactsScreen extends StatelessWidget {
                                   : () => context.push(
                                       '/contatos/${contact.id}/editar',
                                     ),
-                              icon: const Icon(Icons.edit_outlined),
+                              icon: const Icon(AppIcons.editOutlined),
                               label: const Text('Editar'),
                             ),
                             TextButton.icon(
@@ -101,7 +113,7 @@ class ContactsScreen extends StatelessWidget {
                                         );
                                       }
                                     },
-                              icon: const Icon(Icons.delete_outline),
+                              icon: const Icon(AppIcons.deleteOutline),
                               label: const Text('Excluir'),
                             ),
                             TextButton(

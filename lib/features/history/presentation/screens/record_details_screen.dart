@@ -1,3 +1,4 @@
+import '../../../../shared/presentation/app_icons.dart';
 import 'dart:convert';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import '../../../../core/data/zelo_repository.dart';
 import '../../../../core/database/local_store.dart';
 import '../../../../shared/widgets/app_view.dart';
 import '../../data/attachment_store.dart';
+import '../../../monitoring/domain/monitoring_session.dart';
 
 class RecordDetailsScreen extends StatefulWidget {
   const RecordDetailsScreen({required this.type, required this.id, super.key});
@@ -53,12 +55,20 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
         body: ListView(
           padding: const EdgeInsets.all(24),
           children: [
-            Text(
+            SectionHeading(
               incident?.label ?? 'Trajeto',
-              style: Theme.of(context).textTheme.headlineSmall,
+              subtitle: dateLabel(incident?.occurredAt ?? session!.startedAt),
             ),
-            Text(dateLabel(incident?.occurredAt ?? session!.startedAt)),
-            Text(outcomeLabel(incident?.outcome ?? session!.status)),
+            StatusPanel(
+              title: outcomeLabel(incident?.outcome ?? session!.status),
+              message: incident == null
+                  ? 'Confira os detalhes deste trajeto abaixo.'
+                  : 'Este é o resultado original do alerta. Você pode atualizar sua condição sem alterar este registro.',
+              icon: incident == null
+                  ? AppIcons.twoWheelerRounded
+                  : AppIcons.shieldOutlined,
+            ),
+            const SizedBox(height: 20),
             if (session != null) ...[
               SwitchListTile(
                 title: const Text('Preservar trajeto'),
@@ -73,10 +83,11 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
                         ),
                       ),
               ),
-              Text('Posição: ${session.position.name}'),
+              Text('Posição: ${session.position.label}'),
               if (session.endedAt != null)
                 Text('Fim: ${dateLabel(session.endedAt!)}'),
             ],
+            const SectionHeading('Localização registrada'),
             Text(
               location?.describe(DateTime.now().toUtc()) ??
                   'Localização indisponível.',
@@ -84,6 +95,7 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
             if (location != null) SelectableText(location.mapUrl),
             if (incident != null) ...[
               const SizedBox(height: 16),
+              const SectionHeading('Como você está agora?'),
               Text('Condição atual: ${outcomeLabel(incident.condition)}'),
               Wrap(
                 spacing: 12,
@@ -117,6 +129,10 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
                 child: const Text('Abrir pedido de ajuda'),
               ),
               const SizedBox(height: 16),
+              const SectionHeading(
+                'Suas observações',
+                subtitle: 'Estas informações ficam somente no aparelho.',
+              ),
               TextField(
                 controller: notes,
                 maxLength: 4000,
@@ -166,7 +182,7 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Atualizações de condição'),
+                      const SectionHeading('Atualizações de condição'),
                       for (final update in updates)
                         ListTile(
                           title: Text(
@@ -186,7 +202,10 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
                 },
               ),
               const SizedBox(height: 16),
-              const Text('Fotos ficam criptografadas somente neste aparelho.'),
+              const SectionHeading(
+                'Fotos da ocorrência',
+                subtitle: 'Protegidas e salvas somente neste aparelho.',
+              ),
               Wrap(
                 spacing: 12,
                 children: [
@@ -201,7 +220,7 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
                               ).add(incident.id, ImageSource.camera),
                             ),
                           ),
-                    icon: const Icon(Icons.camera_alt_outlined),
+                    icon: const Icon(AppIcons.cameraAltOutlined),
                     label: const Text('Tirar foto'),
                   ),
                   TextButton.icon(
@@ -215,7 +234,7 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
                               ).add(incident.id, ImageSource.gallery),
                             ),
                           ),
-                    icon: const Icon(Icons.photo_library_outlined),
+                    icon: const Icon(AppIcons.photoLibraryOutlined),
                     label: const Text('Escolher foto'),
                   ),
                 ],
@@ -253,7 +272,7 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
                     ),
                     for (final row in snapshot.data ?? [])
                       Text(
-                        '${(jsonDecode(row['payload'] as String) as Map)['channel']} • ${(jsonDecode(row['payload'] as String) as Map)['status']}',
+                        '${channelLabel((jsonDecode(row['payload'] as String) as Map)['channel'])} • ${shareStateLabel((jsonDecode(row['payload'] as String) as Map)['status'])}',
                       ),
                   ],
                 ),
@@ -264,12 +283,13 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
               onPressed: () => uiAction(context, () async {
                 await SharePlus.instance.share(
                   ShareParams(
-                    text: jsonEncode(incident?.toJson() ?? session!.toJson()),
+                    text:
+                        '${incident?.label ?? 'Trajeto'}\nData: ${dateLabel(incident?.occurredAt ?? session!.startedAt)}\nSituação: ${outcomeLabel(incident?.outcome ?? session!.status)}\n${incident == null ? 'Posição: ${session!.position.label}' : 'Condição atual: ${outcomeLabel(incident.condition)}'}\n${location?.describe(DateTime.now().toUtc()) ?? 'Localização indisponível.'}\n${location?.mapUrl ?? ''}\n${incident?.notes ?? ''}',
                     subject: 'ZELO — exportação de registro',
                   ),
                 );
               }),
-              icon: const Icon(Icons.ios_share),
+              icon: const Icon(AppIcons.iosShare),
               label: const Text('Exportar registro'),
             ),
             TextButton.icon(
@@ -291,7 +311,7 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
                         }
                       }
                     },
-              icon: const Icon(Icons.delete_outline),
+              icon: const Icon(AppIcons.deleteOutline),
               label: const Text('Excluir registro'),
             ),
           ],

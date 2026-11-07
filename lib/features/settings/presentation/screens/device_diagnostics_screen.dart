@@ -1,3 +1,4 @@
+import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -117,7 +118,7 @@ class _DeviceDiagnosticsScreenState
             onPressed: diagnostics.isLoading
                 ? null
                 : () => ref.invalidate(deviceDiagnosticsProvider),
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(AppIcons.refresh),
             label: const Text('Atualizar diagnóstico'),
           ),
           if (diagnostics.hasValue)

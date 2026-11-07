@@ -1,7 +1,11 @@
+import '../presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/application/app_controller.dart';
 import '../../core/domain/app_failure.dart';
+import 'app_components.dart';
+export '../presentation/app_labels.dart';
+export 'app_components.dart';
 
 class AppView extends ConsumerWidget {
   const AppView({required this.builder, super.key});
@@ -12,25 +16,34 @@ class AppView extends ConsumerWidget {
       .when(
         data: (data) =>
             builder(context, data, ref.read(appControllerProvider.notifier)),
-        loading: () =>
-            const Scaffold(body: Center(child: CircularProgressIndicator())),
+        loading: () => const Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(semanticsLabel: 'Abrindo seus dados'),
+                SizedBox(height: 20),
+                Text('Abrindo seus dados com segurança…'),
+              ],
+            ),
+          ),
+        ),
         error: (error, stack) => Scaffold(
           appBar: AppBar(title: const Text('ZELO')),
-          body: Padding(
+          body: ListView(
             padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  'Não foi possível abrir os dados protegidos. Os arquivos existentes foram preservados. Tente novamente; não reinstale para resolver uma pendência de sincronização.',
-                ),
-                const SizedBox(height: 16),
-                FilledButton(
+            children: [
+              AppEmptyState(
+                icon: AppIcons.lockOutlineRounded,
+                title: 'Seus dados foram preservados',
+                message:
+                    'Não foi possível abrir os dados protegidos agora. Tente novamente sem reinstalar o aplicativo.',
+                action: FilledButton(
                   onPressed: () => ref.invalidate(localStoreProvider),
                   child: const Text('Tentar novamente'),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       );
@@ -44,6 +57,7 @@ Future<bool> uiAction(
   try {
     await action();
     if (context.mounted && success != null) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text(success)));
@@ -51,6 +65,7 @@ Future<bool> uiAction(
     return true;
   } catch (error) {
     if (context.mounted) {
+      ScaffoldMessenger.of(context).hideCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -88,25 +103,3 @@ Future<bool> confirmAction(
       ),
     ) ??
     false;
-
-String dateLabel(DateTime date) {
-  final local = date.toLocal();
-  String two(int n) => n.toString().padLeft(2, '0');
-  return '${two(local.day)}/${two(local.month)}/${local.year} ${two(local.hour)}:${two(local.minute)}';
-}
-
-String outcomeLabel(String outcome) => switch (outcome) {
-  'PENDING' => 'Aguardando resposta',
-  'CANCELLED' => 'Alerta cancelado',
-  'HELP_REQUESTED' => 'Ajuda solicitada',
-  'TIMED_OUT' => 'Sem resposta no prazo',
-  'SAFE' => 'Estou bem',
-  'NEEDS_HELP' => 'Preciso de ajuda',
-  'UNKNOWN' => 'Condição não informada',
-  'PREPARING' => 'Preparando',
-  'ACTIVE' => 'Proteção ativa',
-  'LIMITED' => 'Monitoramento limitado',
-  'COMPLETED' => 'Trajeto encerrado',
-  'INTERRUPTED' => 'Monitoramento interrompido',
-  _ => outcome,
-};

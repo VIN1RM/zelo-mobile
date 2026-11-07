@@ -5,6 +5,7 @@ import '../../contacts/domain/emergency_contact.dart';
 import '../../../core/data/zelo_repository.dart';
 import '../../../core/domain/app_failure.dart';
 import '../domain/incident.dart';
+import '../../../core/formatting/date_format.dart';
 
 class ShareEmergency {
   ShareEmergency(this.repository);
@@ -18,7 +19,7 @@ class ShareEmergency {
     final location = incident.location;
     return '${test ? 'TESTE DO ZELO — NÃO É UMA EMERGÊNCIA\n' : ''}ZELO — ${incident.label}\n'
         '${name.isEmpty ? 'Usuário do ZELO' : name} solicita ajuda assistida.\n'
-        'Ocorrência registrada em ${incident.occurredAt.toLocal()}.\n'
+        'Ocorrência registrada em ${dateLabel(incident.occurredAt)}.\n'
         '${location == null ? 'Localização indisponível.' : '${location.describe(now)}\n${location.mapUrl}'}\n'
         'Este registro não confirma um acidente. Envio e entrega não são confirmados pelo ZELO.';
   }

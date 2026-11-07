@@ -1,3 +1,4 @@
+import '../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -20,19 +21,22 @@ class AppShell extends StatelessWidget {
         },
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.shield_outlined),
-            selectedIcon: Icon(Icons.shield),
+            icon: Icon(AppIcons.shieldOutlined),
+            selectedIcon: Icon(AppIcons.shield),
             label: 'Início',
           ),
           NavigationDestination(
-            icon: Icon(Icons.people_outline),
-            selectedIcon: Icon(Icons.people),
+            icon: Icon(AppIcons.peopleOutline),
+            selectedIcon: Icon(AppIcons.people),
             label: 'Contatos',
           ),
-          NavigationDestination(icon: Icon(Icons.history), label: 'Histórico'),
           NavigationDestination(
-            icon: Icon(Icons.settings_outlined),
-            selectedIcon: Icon(Icons.settings),
+            icon: Icon(AppIcons.history),
+            label: 'Histórico',
+          ),
+          NavigationDestination(
+            icon: Icon(AppIcons.settingsOutlined),
+            selectedIcon: Icon(AppIcons.settings),
             label: 'Ajustes',
           ),
         ],

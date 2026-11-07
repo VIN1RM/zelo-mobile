@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../shared/widgets/zelo_logo.dart';
@@ -32,6 +33,9 @@ class ZeloBootstrap extends ConsumerWidget {
       title: 'ZELO',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      locale: const Locale('pt', 'BR'),
+      supportedLocales: const [Locale('pt', 'BR')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       home: Scaffold(
         body: SafeArea(
           child: Center(

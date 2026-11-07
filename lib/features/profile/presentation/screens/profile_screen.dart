@@ -1,3 +1,4 @@
+import '../../../../shared/presentation/app_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -41,14 +42,22 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         body: ListView(
           padding: const EdgeInsets.all(24),
           children: [
-            Text(user?.email ?? ''),
-            const Text('E-mail verificado'),
+            StatusPanel(
+              title: 'E-mail verificado',
+              message: user?.email ?? 'Sua conta está conectada.',
+              icon: AppIcons.personOutlineRounded,
+              tone: AppTone.positive,
+            ),
             const SizedBox(height: 16),
+            const SectionHeading('Como podemos chamar você?'),
             TextField(
               controller: name,
               maxLength: 80,
               enabled: !data.busy,
-              decoration: const InputDecoration(labelText: 'Nome'),
+              decoration: const InputDecoration(
+                labelText: 'Seu nome',
+                prefixIcon: Icon(AppIcons.personOutlineRounded),
+              ),
             ),
             FilledButton(
               onPressed: data.busy
@@ -82,9 +91,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: const Text('Sair da conta'),
             ),
             const Divider(),
-            const Text(
+            const SectionHeading(
               'Excluir conta e dados',
-              style: TextStyle(fontWeight: FontWeight.bold),
+              subtitle:
+                  'Uma ação permanente. Leia as informações antes de continuar.',
             ),
             const Text(
               'Exige internet, autenticação recente e proteção encerrada. Falhas deixam a operação pendente para nova tentativa. Um marcador técnico mínimo, sem nome, e-mail, contatos ou localização, permanece para impedir que aparelhos antigos recriem os dados. A senha é usada somente para reautenticação.',
@@ -125,7 +135,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         );
                       }
                     },
-              icon: const Icon(Icons.delete_forever_outlined),
+              icon: const Icon(AppIcons.deleteForeverOutlined),
               label: const Text('Excluir conta e dados'),
             ),
             FutureBuilder(

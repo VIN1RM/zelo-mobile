@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'router/app_router.dart';
@@ -14,8 +15,19 @@ class ZeloApp extends ConsumerWidget {
       title: 'ZELO',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
+      locale: const Locale('pt', 'BR'),
+      supportedLocales: const [Locale('pt', 'BR')],
+      localizationsDelegates: GlobalMaterialLocalizations.delegates,
       routerConfig: ref.watch(appRouterProvider),
-      builder: (context, child) => SafetyCoordinator(child: child!),
+      builder: (context, child) => ColoredBox(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 720),
+            child: SafetyCoordinator(child: child!),
+          ),
+        ),
+      ),
     );
   }
 }

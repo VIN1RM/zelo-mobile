@@ -1,8 +1,10 @@
+import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../shared/widgets/app_view.dart';
 import '../../../../shared/widgets/zelo_logo.dart';
+import '../widgets/phone_position_selector.dart';
 import '../../../monitoring/domain/monitoring_session.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -11,161 +13,251 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) => AppView(
     builder: (context, data, app) {
       final session = data.session;
+      final active =
+          data.running && session?.status == 'ACTIVE' && data.issue == null;
       final status = data.issue != null
           ? 'Proteção não confirmada'
           : session == null
           ? 'Proteção desativada'
           : !data.running
-          ? 'Verificando serviço Android'
+          ? 'Verificando monitoramento'
           : outcomeLabel(session.status);
-      final active =
-          data.running && session?.status == 'ACTIVE' && data.issue == null;
+      Future<void> toggleProtection() async {
+        if (session != null && data.running) {
+          if (await confirmAction(
+                context,
+                'Encerrar proteção?',
+                'O monitoramento será encerrado. Resolva qualquer alerta em andamento antes de continuar.',
+              ) &&
+              context.mounted) {
+            await uiAction(context, app.stop);
+          }
+        } else if (!data.prepared) {
+          context.push('/preparar');
+        } else {
+          await uiAction(context, app.start);
+        }
+      }
+
       return Scaffold(
         appBar: AppBar(
           title: const Row(
-            children: [ZeloLogo(size: 36), SizedBox(width: 8), Text('ZELO')],
+            children: [ZeloLogo(size: 32), SizedBox(width: 10), Text('ZELO')],
           ),
+          actions: [
+            IconButton(
+              tooltip: 'Preparar proteção',
+              onPressed: () => context.push('/preparar'),
+              icon: const Icon(AppIcons.factCheckOutlined),
+            ),
+            const SizedBox(width: 8),
+          ],
         ),
         body: ListView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
           children: [
-            Text(
+            const SectionHeading(
               'Cuidado em cada caminho.',
-              style: Theme.of(context).textTheme.headlineMedium,
+              subtitle: 'Você escolhe quando sua proteção começa.',
             ),
-            const SizedBox(height: 20),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Icon(
-                      active
-                          ? Icons.verified_user_outlined
-                          : Icons.shield_outlined,
-                      color: active ? AppColors.protection : AppColors.navy,
-                      size: 44,
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      status,
-                      style: Theme.of(context).textTheme.titleLarge,
-                      textAlign: TextAlign.center,
-                    ),
-                    if (session != null)
-                      Text(
-                        'Início ${dateLabel(session.startedAt)} • ${session.position.label}',
-                        textAlign: TextAlign.center,
-                      ),
-                    if (session != null && data.running)
-                      Text(
-                        'Duração: ${DateTime.now().toUtc().difference(session.startedAt).inMinutes} min',
-                        textAlign: TextAlign.center,
-                      ),
-                    if (data.issue != null) Text(data.issue!),
-                    if (session != null)
-                      Text(
-                        session.location?.describe(DateTime.now().toUtc()) ??
-                            'Localização inicial indisponível. O monitoramento de sensores não depende de GPS.',
-                      ),
-                    const SizedBox(height: 16),
-                    SegmentedButton<PhonePosition>(
-                      segments: const [
-                        ButtonSegment(
-                          value: PhonePosition.pocket,
-                          label: Text('Bolso'),
-                          icon: Icon(Icons.phone_android),
-                        ),
-                        ButtonSegment(
-                          value: PhonePosition.mount,
-                          label: Text('Suporte'),
-                          icon: Icon(Icons.two_wheeler),
-                        ),
-                      ],
-                      selected: {data.position},
-                      onSelectionChanged: data.busy
-                          ? null
-                          : (positions) => uiAction(
-                              context,
-                              () => app.selectPosition(positions.single),
-                            ),
-                    ),
-                    const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: data.busy
-                          ? null
-                          : () async {
-                              if (session != null && data.running) {
-                                if (await confirmAction(
-                                      context,
-                                      'Encerrar proteção?',
-                                      'O monitoramento será encerrado manualmente. Alertas em andamento precisam ser resolvidos primeiro.',
-                                    ) &&
-                                    context.mounted) {
-                                  await uiAction(context, app.stop);
-                                }
-                              } else if (!data.prepared) {
-                                context.push('/preparar');
-                              } else {
-                                await uiAction(context, app.start);
-                              }
-                            },
-                      child: Text(
-                        data.busy
-                            ? 'Aguarde…'
-                            : session != null && data.running
-                            ? 'Encerrar proteção'
-                            : !data.prepared
-                            ? 'Preparar proteção'
-                            : 'Iniciar proteção',
-                      ),
-                    ),
-                  ],
+            _ProtectionHero(
+              active: active,
+              status: status,
+              message:
+                  data.issue ??
+                  (session == null
+                      ? 'Inicie antes de sair. O ZELO acompanha os movimentos do celular durante o trajeto.'
+                      : 'Início ${dateLabel(session.startedAt)} · ${session.position.label}${data.running ? '\n${DateTime.now().toUtc().difference(session.startedAt).inMinutes} min de monitoramento' : ''}'),
+              action: FilledButton.icon(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: AppColors.navy,
+                ),
+                onPressed: data.busy ? null : toggleProtection,
+                icon: Icon(
+                  session != null && data.running
+                      ? AppIcons.stopCircleOutlined
+                      : AppIcons.playArrowRounded,
+                ),
+                label: Text(
+                  data.busy
+                      ? 'Aguarde…'
+                      : session != null && data.running
+                      ? 'Encerrar proteção'
+                      : !data.prepared
+                      ? 'Preparar proteção'
+                      : 'Iniciar proteção',
                 ),
               ),
             ),
             const SizedBox(height: 16),
-            FilledButton.icon(
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.emergency,
-                foregroundColor: Colors.black,
-                minimumSize: const Size.fromHeight(60),
+            SectionCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SectionHeading(
+                    'Precisa de ajuda agora?',
+                    subtitle:
+                        'O SOS está disponível mesmo sem um trajeto iniciado.',
+                  ),
+                  FilledButton.icon(
+                    style: FilledButton.styleFrom(
+                      backgroundColor: AppColors.emergency,
+                      foregroundColor: Colors.black,
+                    ),
+                    onPressed: data.emergencyBusy
+                        ? null
+                        : () async {
+                            String? id;
+                            if (await uiAction(context, () async {
+                                  id = await app.sos();
+                                }) &&
+                                context.mounted &&
+                                id != null) {
+                              context.push('/ajuda/$id');
+                            }
+                          },
+                    icon: const Icon(AppIcons.sosRounded),
+                    label: const Text('SOS — Preciso de ajuda'),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'Você escolhe o contato e conclui o envio da mensagem.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  if (data.unresolved != null)
+                    TextButton.icon(
+                      onPressed: () =>
+                          context.push('/ajuda/${data.unresolved!.id}'),
+                      icon: const Icon(AppIcons.pendingActionsRounded),
+                      label: const Text('Revisar pedido de ajuda'),
+                    ),
+                ],
               ),
-              onPressed: data.emergencyBusy
-                  ? null
-                  : () async {
-                      String? id;
-                      if (await uiAction(context, () async {
-                            id = await app.sos();
-                          }) &&
-                          context.mounted &&
-                          id != null) {
-                        context.push('/ajuda/$id');
-                      }
-                    },
-              icon: const Icon(Icons.sos),
-              label: const Text('SOS — Preciso de ajuda'),
             ),
-            const SizedBox(height: 12),
-            const Text(
-              'SOS disponível mesmo sem sessão. Mensagens exigem sua ação para enviar; abrir outro app não confirma envio ou entrega.',
-            ),
-            if (data.unresolved != null)
-              TextButton(
-                onPressed: () => context.push('/ajuda/${data.unresolved!.id}'),
-                child: const Text('Revisar pedido de ajuda'),
+            const SizedBox(height: 16),
+            SectionCard(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SectionHeading(
+                    'Onde ficará seu celular?',
+                    subtitle:
+                        'Escolha a posição para ajustar a análise dos movimentos.',
+                  ),
+                  PhonePositionSelector(
+                    position: data.position,
+                    onChanged: data.busy
+                        ? null
+                        : (position) => uiAction(
+                            context,
+                            () => app.selectPosition(position),
+                          ),
+                  ),
+                  if (session != null) ...[
+                    const SizedBox(height: 16),
+                    Text(
+                      session.location?.describe(DateTime.now().toUtc()) ??
+                          'Localização inicial indisponível. A análise dos sensores continua sem GPS.',
+                    ),
+                  ],
+                ],
               ),
+            ),
             const SizedBox(height: 16),
-            Text('${data.pendingSync} operações de sincronização pendentes.'),
-            if (data.notice != null) Text(data.notice!),
+            AppActionTile(
+              icon: AppIcons.peopleOutlineRounded,
+              title: 'Seus contatos de emergência',
+              subtitle: data.contacts.isEmpty
+                  ? 'Adicione alguém de confiança antes de iniciar.'
+                  : '${data.contacts.length} de 3 contatos cadastrados',
+              onTap: () => context.go('/contatos'),
+            ),
+            AppActionTile(
+              icon: AppIcons.cloudSyncOutlined,
+              title: data.pendingSync == 0
+                  ? 'Nenhum envio pendente'
+                  : '${data.pendingSync} atualizações aguardando envio',
+              subtitle:
+                  'Seus registros são salvos no aparelho. A sincronização é automática com o app aberto e internet.',
+              onTap: () => context.push('/sincronizacao'),
+            ),
             const SizedBox(height: 16),
-            const Text(
-              'Detecção experimental, ainda sujeita à calibração física. Sem rastreamento GPS contínuo. O ZELO é auxiliar e não substitui equipamentos de proteção ou serviços de emergência.',
+            const StatusPanel(
+              title: 'Uma ajuda extra no caminho',
+              message:
+                  'A detecção é experimental e pode gerar falsos alertas ou não identificar situações. O ZELO não substitui equipamentos de proteção nem serviços de emergência.',
+              icon: AppIcons.infoOutlineRounded,
             ),
           ],
         ),
       );
     },
+  );
+}
+
+class _ProtectionHero extends StatelessWidget {
+  const _ProtectionHero({
+    required this.active,
+    required this.status,
+    required this.message,
+    required this.action,
+  });
+  final bool active;
+  final String status;
+  final String message;
+  final Widget action;
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      gradient: const LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [AppColors.navy, AppColors.teal],
+      ),
+      borderRadius: BorderRadius.circular(26),
+    ),
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Align(
+            alignment: Alignment.centerLeft,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Icon(
+                active ? AppIcons.verifiedUserRounded : AppIcons.shieldOutlined,
+                size: 30,
+                color: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              status,
+              style: Theme.of(
+                context,
+              ).textTheme.headlineSmall?.copyWith(color: Colors.white),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            message,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: Colors.white, height: 1.5),
+          ),
+          const SizedBox(height: 24),
+          action,
+        ],
+      ),
+    ),
   );
 }

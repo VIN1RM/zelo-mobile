@@ -1,6 +1,8 @@
+import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../shared/widgets/app_view.dart';
+import '../../../monitoring/domain/monitoring_session.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});
@@ -28,9 +30,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   (
                     id: session.id,
                     type: 'sessions',
-                    title: 'Trajeto • ${outcomeLabel(session.status)}',
+                    title: outcomeLabel(session.status),
                     subtitle: session.local
-                        ? session.position.name
+                        ? session.position.label
                         : 'Sessão de outro aparelho',
                     at: session.startedAt,
                   ),
@@ -52,20 +54,46 @@ class _HistoryScreenState extends State<HistoryScreen> {
           children: [
             Padding(
               padding: const EdgeInsets.all(16),
-              child: SegmentedButton<String>(
-                segments: const [
-                  ButtonSegment(value: 'all', label: Text('Todos')),
-                  ButtonSegment(value: 'sessions', label: Text('Trajetos')),
-                  ButtonSegment(value: 'incidents', label: Text('Ocorrências')),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SectionHeading(
+                    'Seu caminho registrado',
+                    subtitle: 'Consulte trajetos, alertas e pedidos de ajuda.',
+                  ),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      for (final option in const {
+                        'all': 'Todos',
+                        'sessions': 'Trajetos',
+                        'incidents': 'Ocorrências',
+                      }.entries)
+                        ChoiceChip(
+                          label: Text(option.value),
+                          selected: filter == option.key,
+                          onSelected: (_) =>
+                              setState(() => filter = option.key),
+                        ),
+                    ],
+                  ),
                 ],
-                selected: {filter},
-                onSelectionChanged: (value) =>
-                    setState(() => filter = value.single),
               ),
             ),
             Expanded(
               child: entries.isEmpty
-                  ? const Center(child: Text('Nenhum registro neste filtro.'))
+                  ? ListView(
+                      padding: const EdgeInsets.all(20),
+                      children: const [
+                        AppEmptyState(
+                          icon: AppIcons.historyRounded,
+                          title: 'Nenhum registro neste filtro.',
+                          message:
+                              'Seus trajetos e ocorrências aparecerão aqui. Você poderá consultar os detalhes sempre que precisar.',
+                        ),
+                      ],
+                    )
                   : ListView.builder(
                       itemCount: entries.length,
                       itemBuilder: (context, index) {
@@ -76,16 +104,16 @@ class _HistoryScreenState extends State<HistoryScreen> {
                             vertical: 6,
                           ),
                           child: ListTile(
-                            leading: Icon(
+                            leading: IconBadge(
                               entry.type == 'sessions'
-                                  ? Icons.two_wheeler
-                                  : Icons.warning_amber,
+                                  ? AppIcons.twoWheeler
+                                  : AppIcons.warningAmber,
                             ),
                             title: Text(entry.title),
                             subtitle: Text(
                               '${dateLabel(entry.at)}\n${entry.subtitle}',
                             ),
-                            trailing: const Icon(Icons.chevron_right),
+                            trailing: const Icon(AppIcons.chevronRight),
                             onTap: () => context.push(
                               '/historico/${entry.type}/${entry.id}',
                             ),

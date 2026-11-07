@@ -1,3 +1,4 @@
+import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import '../../../../features/history/data/attachment_store.dart';
 import '../../../../shared/widgets/app_view.dart';
@@ -11,19 +12,23 @@ class PrivacyScreen extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          const Text(
-            'Seus dados no ZELO',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+          const SectionHeading(
+            'Seus dados, com clareza',
+            subtitle: 'Entenda o que é salvo, compartilhado e excluído.',
           ),
           const SizedBox(height: 16),
           const Text(
             'Nome e e-mail são tratados pelo Firebase Authentication para acesso à conta. Contatos, sessões e ocorrências são salvos no banco protegido do aparelho; metadados são sincronizados com o projeto Firebase do ZELO quando há acesso ao servidor.',
           ),
           const SizedBox(height: 16),
-          const Text(
-            'Não gravamos uma rota GPS contínua nem um fluxo contínuo de sensores. Localizações pontuais incluem horário e precisão. Fotos e observações ficam somente no aparelho. Exportar ou compartilhar depende de uma ação sua.',
+          const StatusPanel(
+            title: 'Você controla o compartilhamento',
+            message:
+                'Não gravamos rotas contínuas nem amostras dos sensores. A localização é pontual. Fotos e observações ficam somente no aparelho. Você decide quando exportar ou compartilhar.',
+            icon: AppIcons.privacyTipOutlined,
           ),
           const SizedBox(height: 16),
+          const SectionHeading('Por quanto tempo os registros ficam salvos?'),
           const Text(
             'Registros comuns não preservados podem ser removidos após 90 dias. Emergências não canceladas e SOS são preservados por padrão. Fotos acompanham a ocorrência. Exclusões na nuvem só são consideradas concluídas após confirmação do servidor.',
           ),
@@ -49,6 +54,7 @@ class PrivacyScreen extends StatelessWidget {
             child: const Text('Aplicar retenção agora'),
           ),
           const SizedBox(height: 16),
+          const SectionHeading('O que acontece ao excluir?'),
           const Text(
             'Após excluir a conta, um marcador técnico mínimo permanece no servidor para bloquear reenvios antigos. Ele contém somente o identificador pseudônimo, a fase e a data da exclusão.',
           ),

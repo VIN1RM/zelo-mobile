@@ -1,3 +1,5 @@
+import '../../../core/formatting/date_format.dart';
+
 class LocationSnapshot {
   const LocationSnapshot({
     required this.latitude,
@@ -20,7 +22,7 @@ class LocationSnapshot {
       accuracy >= 0 &&
       accuracy <= 100;
   String describe(DateTime now) =>
-      '${isRecent(now) ? 'Localização recente' : 'Localização antiga ou imprecisa'} — ${capturedAt.toLocal()}, precisão estimada ${accuracy.round()} m';
+      '${isRecent(now) ? 'Localização recente' : 'Localização antiga ou imprecisa'} — ${dateLabel(capturedAt)}, precisão estimada ${accuracy.round()} m';
   String get mapUrl => 'https://maps.google.com/?q=$latitude,$longitude';
   Map<String, Object?> toJson() => {
     'latitude': latitude,

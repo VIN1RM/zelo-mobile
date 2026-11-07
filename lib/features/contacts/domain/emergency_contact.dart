@@ -16,6 +16,18 @@ class EmergencyContact {
   final String? email;
   final int revision;
 
+  static String? nameError(String value) =>
+      value.trim().length < 2 || value.trim().length > 80
+      ? 'O nome deve ter de 2 a 80 caracteres.'
+      : null;
+
+  static String? emailError(String? value) =>
+      value != null &&
+          (value.length > 254 ||
+              !RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(value))
+      ? 'Informe um e-mail válido.'
+      : null;
+
   static String? normalizePhone(String value) {
     if (value.trim().isEmpty) return null;
     final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
@@ -31,16 +43,16 @@ class EmergencyContact {
   }
 
   static void validate(String name, String? phone, String? email) {
-    if (name.trim().length < 2 || name.trim().length > 80) {
-      throw const AppFailure('O nome deve ter de 2 a 80 caracteres.');
+    final invalidName = nameError(name);
+    if (invalidName != null) {
+      throw AppFailure(invalidName);
     }
     if (phone == null && email == null) {
       throw const AppFailure('Informe WhatsApp ou e-mail.');
     }
-    if (email != null &&
-        (email.length > 254 ||
-            !RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$').hasMatch(email))) {
-      throw const AppFailure('Informe um e-mail válido.');
+    final invalidEmail = emailError(email);
+    if (invalidEmail != null) {
+      throw AppFailure(invalidEmail);
     }
   }
 
