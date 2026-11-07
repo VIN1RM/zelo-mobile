@@ -22,6 +22,7 @@ import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/settings/presentation/screens/device_diagnostics_screen.dart';
 import '../../features/settings/presentation/screens/settings_screen.dart';
 import 'app_shell.dart';
+import '../../features/device_resources/presentation/screens/device_resources_screen.dart';
 
 const _publicPaths = {
   '/boas-vindas',
@@ -59,6 +60,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) =>
         authRedirect(ref.read(authUserProvider), state.uri.path),
     routes: [
+      GoRoute(
+        path: '/ajustes/recursos',
+        builder: (context, state) => const DeviceResourcesScreen(),
+      ),
       GoRoute(
         path: '/preparar',
         builder: (context, state) => const PreparationScreen(),

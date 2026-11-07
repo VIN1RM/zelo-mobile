@@ -17,6 +17,10 @@ Consulte o [relatório atual e os gates de produção](docs/estado-mvp.md).
 - Histórico, atualizações, notas, preservação, fotos locais e exportação.
 - SQLCipher, Outbox, sincronização de metadados, conflitos e tombstones.
 - Avisos operacionais, demonstração isolada, ajustes, privacidade e licenças.
+- Recursos do aparelho: câmera com prévia, latitude/longitude, notificação local
+  de teste e acelerômetro X/Y/Z ao vivo para a atividade acadêmica.
+
+Roteiro dos quatro critérios e testes no celular: [trabalho da faculdade](docs/trabalho-faculdade.md).
 
 Abrir um destino não comprova envio ou entrega. Não há chamada automática,
 GPS contínuo ou garantia de detecção. O ZELO é uma ferramenta auxiliar e
@@ -39,7 +43,9 @@ flutter run -d <android-device>
 
 `android/app/google-services.json` corresponde ao pacote
 `br.com.zelo.zelo_mobile`. Authentication por e-mail/senha foi habilitado pelo
-responsável. **Firestore de produção ainda precisa de região, banco e regras.**
+responsável. O responsável também criou o Firestore, publicou as regras e
+confirmou sincronização com registros visíveis no console. A homologação
+completa de produção continua separada dos testes acadêmicos.
 Os testes locais de backend usam exclusivamente o projeto demo dos emuladores.
 
 ```text
@@ -73,8 +79,8 @@ Não versionar esse arquivo nem o keystore. Não há fallback para assinatura de
 
 ## Antes de lançar
 
-Ainda faltam implantação Firestore, calibração e ensaios físicos, aceites de
-e-mail/compartilhamento reais, identidade e contato na política de privacidade
+Ainda faltam calibração e ensaios físicos abrangentes, homologação dos fluxos
+de conta e compartilhamento, identidade e contato na política de privacidade
 e assinatura de distribuição. Ver [estado do MVP](docs/estado-mvp.md),
 [POC Android](docs/poc-android.md), [planejamento](docs/plano-implementacao.md)
 e [rastreabilidade](docs/rastreabilidade.md).

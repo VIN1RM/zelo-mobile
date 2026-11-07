@@ -23,6 +23,16 @@ import 'package:zelo_mobile/features/monitoring/domain/monitoring_session.dart';
 import 'package:zelo_mobile/features/settings/presentation/screens/settings_screen.dart';
 import 'package:zelo_mobile/features/settings/presentation/screens/sync_screen.dart';
 import '../support/fake_auth_repository.dart';
+import 'package:zelo_mobile/features/device_resources/data/device_resources_gateway.dart';
+import 'package:zelo_mobile/features/device_resources/domain/acceleration_reading.dart';
+import 'package:zelo_mobile/features/device_resources/presentation/screens/device_resources_screen.dart';
+
+class _ResourcePreview extends DeviceResourcesGateway {
+  @override
+  Stream<AccelerationReading> watchAcceleration() => Stream.multi((controller) {
+    controller.add(const AccelerationReading(x: 0.25, y: -0.12, z: 9.81));
+  });
+}
 
 class _PreviewController extends AppController {
   _PreviewController(this.localRepository, this.snapshot);
@@ -81,6 +91,7 @@ void main() {
     'inicio': HomeScreen(),
     'contatos': ContactsScreen(),
     'novo-contato': ContactFormScreen(),
+    'recursos': DeviceResourcesScreen(),
     'historico': HistoryScreen(),
     'sincronizacao': SyncScreen(),
     'ajustes': SettingsScreen(),
@@ -136,6 +147,9 @@ void main() {
           await tester.pumpWidget(
             ProviderScope(
               overrides: [
+                deviceResourcesGatewayProvider.overrideWithValue(
+                  _ResourcePreview(),
+                ),
                 appControllerProvider.overrideWith(
                   () => _PreviewController(repository, snapshot),
                 ),

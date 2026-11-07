@@ -13,6 +13,14 @@ import io.flutter.plugin.common.MethodChannel
 import org.json.JSONObject
 
 class MainActivity : FlutterActivity() {
+    private var deviceResources: DeviceResourcesBridge? = null
+    override fun onStart() { super.onStart(); deviceResources?.resume() }
+    override fun onStop() { deviceResources?.pause(); super.onStop() }
+    override fun cleanUpFlutterEngine(flutterEngine: FlutterEngine) {
+        deviceResources?.dispose()
+        deviceResources = null
+        super.cleanUpFlutterEngine(flutterEngine)
+    }
     private var permissionResult:MethodChannel.Result?=null
     override fun onRequestPermissionsResult(requestCode:Int,permissions:Array<out String>,grantResults:IntArray) {
         super.onRequestPermissionsResult(requestCode,permissions,grantResults)
@@ -23,6 +31,7 @@ class MainActivity : FlutterActivity() {
     }
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        deviceResources = DeviceResourcesBridge(this, flutterEngine.dartExecutor.binaryMessenger)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger,"br.com.zelo/permissions").setMethodCallHandler { call,result ->
             when(call.method) {
                 "notificationsGranted" -> result.success((getSystemService(NOTIFICATION_SERVICE) as NotificationManager).areNotificationsEnabled())

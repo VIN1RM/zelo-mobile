@@ -20,6 +20,7 @@ void main() {
         '/historico',
         '/ajustes',
         '/ajustes/diagnostico',
+        '/ajustes/recursos',
       ]) {
         expect(
           authRedirect(const AsyncData<AuthUser?>(null), path),
