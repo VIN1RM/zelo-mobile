@@ -59,9 +59,24 @@ e o projeto inicia a linha de desenvolvimento da versão `1.0.0`.
   localização pt-BR dos componentes Flutter, datas e resumos de compartilhamento.
 - Sincronização com orientação sobre funcionamento automático, indicação de
   progresso e identificação dos contatos nas pendências.
-- Revisão visual automatizada de nove telas, incluindo fonte ampliada em 200%.
+- Revisão visual automatizada de dez telas, incluindo fonte ampliada em 200%.
 - Cadastro de contatos com validação junto aos campos e regras compartilhadas;
   feedback sem acúmulo de avisos e títulos de histórico mais diretos.
 
 - Kotlin atualizado para 2.4.21, necessário para os metadados do Firebase Auth atual.
 - Configuração Kotlin migrada para `compilerOptions`.
+
+### Validação
+
+- Análise estática limpa, 69 testes Flutter aprovados e integração Android API 35
+  confirmando os eixos nativos, a pausa do listener e a notificação de teste em segundo plano.
+- Responsável confirmou os quatro recursos acadêmicos no Redmi Note 9, MIUI
+  Global 13.0.2, Android 12, online e offline: foto com cancelamento/nova captura,
+  coordenadas/mapa/cópia, notificação em primeiro plano/segundo plano/tela bloqueada
+  e acelerômetro X/Y/Z ao vivo.
+- Configuração Firestore e sincronização básica confirmadas pelo responsável;
+  pedido assistido por e-mail recebido com localização conferida no Maps.
+- Orientação de APK atualizada para distinguir ARM64 de celular e x86_64 de emulador.
+  O pacote padrão é sobrescrito pela última arquitetura compilada.
+- Permissões negadas e recuperação no aparelho, slides e ensaio da apresentação
+  continuam como verificações/etapas pendentes. Detecção permanece experimental.

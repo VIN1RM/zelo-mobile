@@ -1,8 +1,16 @@
 # Estado do MVP — 7 de novembro de 2026
 
-Implementação de desenvolvimento na branch `develop`, sem commit ou publicação.
+Implementação de desenvolvimento versionada na branch `develop`, incluindo
+os incrementos `ba234a5`, `7c87087` e `60de272`. Este relatório começou no primeiro
+incremento operacional e recebeu as atualizações de validação abaixo.
 O código cobre os fluxos do MVP. Isso não equivale à aprovação para uso real:
 o detector é experimental e os gates de produção abaixo continuam abertos.
+
+Atualização acadêmica: os quatro recursos de câmera, GPS, notificação local e
+acelerômetro X/Y/Z estão implementados e foram confirmados pelo responsável no
+Redmi Note 9 com Android 12, online e offline. O incremento tem 69 testes Flutter
+aprovados e integração nativa em emulador API 35. Ver
+[roteiro e resultados](trabalho-faculdade.md). Isso não encerra a calibração do detector.
 
 ## Funcionalidades implementadas
 
@@ -52,7 +60,7 @@ dados. Essa exceção é informada na interface e precisa constar na política f
 
 ## Evidências executadas localmente
 
-- 44 testes Dart de domínio, repositório, controle, rotas, widgets, texto
+- 69 testes Dart de domínio, repositório, controle, rotas, recursos nativos, texto
   ampliado e acessibilidade aprovados; análise estática sem ocorrências.
 - Oito testes das Firestore Rules em emulador: isolamento, verificação de e-mail,
   contatos, revisões, imutabilidade, exclusão e impedimento de recriação.
@@ -83,15 +91,17 @@ pacotes foram padronizados no mesmo versionCode para evitar downgrade.
 
 ## Gates para lançamento
 
-1. **Firestore de produção:** a consulta retornou API desativada/não utilizada.
-   Ainda é necessário escolher a região, criar o banco e publicar as regras.
-   Nenhuma dessas alterações foi executada em produção. A escolha de região
-   deve ser deliberada; não é determinada pelo arquivo de configuração local.
+1. **Firestore de produção:** após a consulta inicial indicar API indisponível,
+   o responsável criou o banco e publicou as regras. Confirmou sincronização
+   sem pendências e registros no console. A configuração inicial está concluída;
+   para lançamento, resta homologar conflitos entre aparelhos, recuperação e
+   exclusão de conta no ambiente real.
 2. **Aparelhos físicos:** testar API mínima/atual, tela bloqueada, economia de
    bateria, fabricantes, encerramento do processo, permissões, aquecimento e
    consumo. Calibrar e aceitar formalmente o detector com dados controlados.
-3. **E-mail e compartilhamento reais:** validar entrega de verificação e
-   recuperação, links e abertura dos aplicativos de destino com contas de teste.
+3. **E-mail e compartilhamento reais:** o responsável confirmou recebimento de
+   um pedido assistido por e-mail e conferiu o ponto no Maps. Ainda é necessário
+   homologar verificação/recuperação de conta e demais destinos/cenários reais.
 4. **Privacidade:** nome/razão social e e-mail público ainda não definidos pelo
    responsável. A tela atual é informativa de desenvolvimento; não representa
    uma política pública final aprovada.
@@ -130,4 +140,5 @@ ser distribuído como aplicativo principal.
 
 Pacotes principais gerados neste ciclo: `build/deliverables/zelo-development-arm64.apk`
 e `build/deliverables/zelo-development-x86_64.apk`. São artefatos locais ignorados
-pelo Git, com entrada `lib/main.dart`, sem commit ou publicação.
+pelo Git, com entrada `lib/main.dart`. O código está versionado na `develop`;
+os APKs não foram publicados como release de produção.

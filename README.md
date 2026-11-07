@@ -8,6 +8,11 @@ alerta de 30 segundos diante de padrão suspeito e facilita ajuda assistida.
 `1.0.0+1` é a meta do produto. O detector não foi calibrado em aparelhos físicos.
 Consulte o [relatório atual e os gates de produção](docs/estado-mvp.md).
 
+Para a atividade **Meu Smartphone Inteligente**, os quatro recursos obrigatórios
+estão implementados. O responsável confirmou seu funcionamento no Redmi Note 9,
+MIUI Global 13.0.2, Android 12, online e offline. Isso valida os fluxos principais
+nesse aparelho; não representa calibração do detector ou homologação comercial.
+
 ## Implementado
 
 - Conta por e-mail/senha, verificação, recuperação, perfil e exclusão retomável.
@@ -52,14 +57,32 @@ Os testes locais de backend usam exclusivamente o projeto demo dos emuladores.
 lib/app/        bootstrap, tema, rotas e coordenação de alertas
 lib/core/       banco, repositório, controle, plataforma e sincronização
 lib/features/   autenticação, contatos, monitoramento, emergência,
-                histórico, preparação, perfil e ajustes
-android/app/src/main/kotlin/   serviço, detector e journal criptografado
+                histórico, preparação, perfil, ajustes e recursos do aparelho
+lib/shared/     ícones, rótulos pt-BR e componentes reutilizáveis
+android/app/src/main/kotlin/   serviço, detector, journal e canais de recursos
 test/           domínio, repositório, controle, widgets e acessibilidade
 integration_test/             Android e Firebase em emuladores
 tools/firestore/              testes das regras
 ```
 
 ## Verificações
+
+Última execução de implementação: análise estática limpa, **69 testes Flutter**
+aprovados e integração de recursos nativos aprovada no emulador Android API 35.
+Os testes automatizados de câmera/GPS usam adaptadores substitutos; a confirmação
+física desses recursos foi relatada pelo responsável no aparelho abaixo.
+
+| Recurso | Resultado informado pelo responsável no Redmi Note 9 |
+| --- | --- |
+| Câmera | Captura, confirmação, cancelamento e nova foto funcionando |
+| GPS | Coordenadas, localização no mapa e cópia funcionando |
+| Notificação local | Funcionando em primeiro plano, segundo plano e tela bloqueada |
+| Acelerômetro | X, Y e Z atualizando ao movimentar o aparelho |
+| Rede | Quatro recursos relatados como funcionando online e offline |
+
+Permissões negadas e sua recuperação ainda precisam de confirmação no aparelho.
+O [roteiro de testes](docs/trabalho-faculdade.md) distingue esses casos dos fluxos
+já confirmados. Slides e ensaio de até 15 minutos são a próxima etapa acadêmica.
 
 ```sh
 dart format --output=none --set-exit-if-changed lib test integration_test
@@ -76,6 +99,23 @@ testes JVM e regras em emulador. Execução remota depende de envio posterior.
 
 Release exige chave própria em `android/key.properties`, conforme o exemplo.
 Não versionar esse arquivo nem o keystore. Não há fallback para assinatura debug.
+
+## APK para testar no celular
+
+Para o Redmi Note 9 usado nos testes, gere o pacote **ARM64**:
+
+```sh
+flutter build apk --debug --target-platform android-arm64
+```
+
+O resultado fica em `build/app/outputs/flutter-apk/app-debug.apk`. O pacote de
+entrega deste incremento também está em `build/deliverables/zelo-faculdade-arm64.apk`,
+quando disponível no workspace. Arquivos de `build/` não são versionados.
+
+Ao gerar depois um APK `android-x64` para emulador, o caminho padrão
+`app-debug.apk` é sobrescrito pelo pacote do emulador. Confira a arquitetura
+ou gere ARM64 novamente antes de copiar para o celular. O comando sem `--debug`
+gera release e exige a chave de produção configurada.
 
 ## Antes de lançar
 

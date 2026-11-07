@@ -63,8 +63,16 @@ Referência: [sensores de movimento Android](https://developer.android.com/devel
 
 ## Cenários para testar no celular
 
-Registre modelo, Android, versão do APK, data e resultado observado. Os cenários
-abaixo ainda precisam ser executados no aparelho que será usado na apresentação.
+Registre modelo, Android, versão do APK, data e resultado observado. O responsável
+relatou testes no **Redmi Note 9, MIUI Global 13.0.2, Android 12
+(SP1A.210812.016)**: câmera com confirmação/cancelamento/nova foto, coordenadas
+com mapa e cópia, notificação em primeiro plano/segundo plano/tela bloqueada e
+acelerômetro ao vivo. Relatou funcionamento online e offline.
+
+Isso confirma os fluxos principais de CT02, CT03, CT05, CT06, CT08, CT09, CT11
+e CT14 nesse aparelho, com base no relato do responsável. Os demais cenários
+continuam disponíveis para completar o aceite; não presumir que permissões
+negadas e recuperação foram testadas apenas porque o fluxo permitido funcionou.
 Não arremesse, derrube ou bata o celular; inclinações suaves bastam para os eixos.
 
 | Caso | Passos | Resultado esperado |
@@ -111,8 +119,10 @@ acelerômetro e permissão de notificações habilitados.
 Resultado deste incremento: integração aprovada no emulador Android API 35.
 Foram recebidas três leituras finitas, confirmada a pausa nativa do sensor em
 segundo plano e verificada a notificação ativa no Android após o prazo. A
-notificação de teste foi removida ao concluir. Câmera e GPS físicos continuam
-como ensaios manuais no celular do responsável, conforme CT02–CT07.
+notificação de teste foi removida ao concluir. A captura de foto e a obtenção
+de coordenadas no celular foram posteriormente confirmadas pelo responsável,
+conforme registro acima. Negação de permissões e recuperação ainda não têm
+confirmação física registrada.
 
 Os slides e o ensaio final de até 15 minutos são a etapa seguinte. Não é
 necessário concluir assinatura de loja ou homologação comercial para demonstrar
