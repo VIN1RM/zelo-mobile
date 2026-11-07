@@ -4,20 +4,27 @@ import 'app_colors.dart';
 
 abstract final class AppTheme {
   static ThemeData get light {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: AppColors.navy,
-      brightness: Brightness.light,
-    ).copyWith(
-      primary: AppColors.navy,
-      secondary: AppColors.teal,
-      error: AppColors.emergency,
-      surface: AppColors.surface,
-    );
+    final colorScheme =
+        ColorScheme.fromSeed(
+          seedColor: AppColors.navy,
+          brightness: Brightness.light,
+        ).copyWith(
+          primary: AppColors.navy,
+          secondary: AppColors.teal,
+          error: AppColors.emergency,
+          surface: AppColors.surface,
+        );
 
     return ThemeData(
       useMaterial3: true,
+      fontFamily: 'Karla',
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.background,
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: AppColors.surface,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+      ),
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.navy,

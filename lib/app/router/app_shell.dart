@@ -29,10 +29,7 @@ class AppShell extends StatelessWidget {
             selectedIcon: Icon(Icons.people),
             label: 'Contatos',
           ),
-          NavigationDestination(
-            icon: Icon(Icons.history),
-            label: 'Histórico',
-          ),
+          NavigationDestination(icon: Icon(Icons.history), label: 'Histórico'),
           NavigationDestination(
             icon: Icon(Icons.settings_outlined),
             selectedIcon: Icon(Icons.settings),
