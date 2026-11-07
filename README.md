@@ -1,143 +1,82 @@
 # ZELO
 
-O ZELO é um aplicativo Android em desenvolvimento para motociclistas. Seu
-objetivo é oferecer uma camada auxiliar e experimental de segurança: monitorar
-movimentos do celular durante uma sessão iniciada pelo usuário, identificar
-padrões compatíveis com possíveis acidentes e facilitar um pedido de ajuda
-assistido.
+Aplicativo Android de apoio experimental à segurança de motociclistas.
+Uma sessão iniciada pelo usuário analisa movimentos localmente, apresenta
+alerta de 30 segundos diante de padrão suspeito e facilita ajuda assistida.
 
-> **Estado do projeto:** desenvolvimento inicial. A versão `1.0.0` é a meta do
-> MVP, não um lançamento estável. O app ainda não monitora trajetos, detecta
-> acidentes nem envia pedidos de ajuda.
+**Estado: MVP de desenvolvimento, ainda sem aceite para lançamento.** A versão
+`1.0.0+1` é a meta do produto. O detector não foi calibrado em aparelhos físicos.
+Consulte o [relatório atual e os gates de produção](docs/estado-mvp.md).
 
-## Proposta do MVP
+## Implementado
 
-O escopo planejado para a primeira versão inclui:
+- Conta por e-mail/senha, verificação, recuperação, perfil e exclusão retomável.
+- Preparação, diagnóstico e até três contatos com prioridade e teste assistido.
+- Serviço Android foreground, perfis Bolso/Suporte, sensores e alerta durável.
+- SOS manual, GPS pontual opcional e abertura de WhatsApp/e-mail ou cópia.
+- Histórico, atualizações, notas, preservação, fotos locais e exportação.
+- SQLCipher, Outbox, sincronização de metadados, conflitos e tombstones.
+- Avisos operacionais, demonstração isolada, ajustes, privacidade e licenças.
 
-- Cadastro e acesso com e-mail, verificação de endereço e recuperação de senha.
-- Até três contatos de emergência, com prioridade configurável.
-- Monitoramento voluntário, iniciado e encerrado manualmente, com perfis
-  “Bolso” e “Suporte”.
-- Análise experimental local dos sensores do Android e alerta com contagem de
-  30 segundos.
-- SOS manual e preparação de mensagens para compartilhamento pelo usuário.
-- Histórico local de sessões e ocorrências, com atualizações e fotos mantidas
-  no dispositivo.
-- Armazenamento local offline-first e sincronização de metadados quando
-  disponível.
+Abrir um destino não comprova envio ou entrega. Não há chamada automática,
+GPS contínuo ou garantia de detecção. O ZELO é uma ferramenta auxiliar e
+experimental; não substitui equipamentos e práticas de segurança.
 
-Esses itens descrevem o produto planejado; ainda precisam ser implementados e,
-quando aplicável, validados em aparelhos Android reais.
+Fotos e notas ficam no aparelho. Firestore recebe metadados autorizados pelas
+regras. A exclusão mantém um marcador mínimo por UID para impedir recriação
+por tokens antigos, conforme [ADR-002](docs/adr/ADR-002-mvp-offline-e-servico-android.md).
 
-## Segurança e limitações
+## Desenvolvimento
 
-O ZELO é uma ferramenta auxiliar e experimental. Não substitui capacete,
-direção defensiva, serviços de emergência ou o apoio de outras pessoas. O app
-não promete detectar todos os acidentes nem funcionar continuamente em todos
-os aparelhos e condições.
-
-Mensagens de WhatsApp ou e-mail exigirão uma ação do usuário. Abrir outro
-aplicativo ou copiar uma mensagem não comprova envio ou entrega. O produto não
-inclui chamada automática para serviços de emergência nem rastreamento GPS
-contínuo.
-
-## Estado da implementação
-
-A base atual contém:
-
-- Inicialização Flutter com Riverpod.
-- Integração Firebase Android e fluxo de cadastro, login, recuperação e
-  verificação de e-mail, com proteção das rotas e saída da conta.
-- Navegação principal entre Início, Contatos, Histórico e Ajustes.
-- Tema Material 3 baseado na [paleta da aplicação](./paleta.md).
-- Logo oficial, fonte Karla local e ícone adaptativo Android.
-- Diagnóstico do aparelho em Ajustes, sem ativar monitoramento.
-- Telas iniciais que identificam explicitamente as funcionalidades ainda não
-  disponíveis.
-
-Contatos e histórico ainda são telas informativas. A proteção não
-pode ser ativada nesta versão.
-
-## Tecnologias e organização
-
-- **Plataforma do MVP:** Android.
-- **Interface:** Flutter e Dart.
-- **Estado e rotas:** Riverpod e GoRouter.
-- **Arquitetura planejada:** Feature-First com Clean Architecture pragmática.
-- **Autenticação:** Firebase Authentication por e-mail/senha.
-- **Persistência e serviços planejados:** SQLite local, Outbox e Cloud Firestore,
-  sujeitos aos gates técnicos da documentação.
-
-```text
-lib/
-  app/
-    router/                 # Rotas e navegação principal
-    theme/                  # Cores e tema Material 3
-  features/
-    auth/                   # Acesso, verificação e recuperação
-    home/                   # Início
-    contacts/               # Contatos de emergência
-    history/                # Histórico
-    settings/               # Ajustes
-  shared/
-    widgets/                # Componentes compartilhados
-  main.dart                 # Inicialização do app
-test/                       # Testes de widgets
-```
-
-Quando uma funcionalidade for implementada, sua feature deverá receber as
-camadas necessárias de apresentação, aplicação, domínio e dados. Não é
-necessário criar diretórios vazios para partes ainda não iniciadas.
-
-## Requisitos para desenvolvimento
-
-- Flutter compatível com a restrição Dart definida em `pubspec.yaml`.
-- Baseline deste ciclo: Flutter **3.41.4** / Dart **3.11.1**; versão Flutter
-  registrada em `.flutter-version`. Android API 26+, compile/target SDK 36.
-- Android SDK e um emulador ou dispositivo Android para executar o app.
-
-O projeto também contém diretórios de plataforma gerados pelo Flutter, mas o
-escopo atual do produto é Android.
-
-## Executar
-
-Na raiz do projeto:
+Baseline Flutter **3.41.4**, Dart **3.11.1**, Android API 26+, compile/target 36.
+Riverpod/GoRouter, Firebase Auth/Firestore, SQLCipher e serviço Kotlin.
+O escopo suportado neste ciclo é Android.
 
 ```sh
 flutter pub get
 flutter run -d <android-device>
 ```
 
-O Android usa `android/app/google-services.json`, processado pelo plugin Google
-Services, para inicializar o Firebase. O arquivo deve corresponder ao pacote
-`br.com.zelo.zelo_mobile`; E-mail/senha precisa estar habilitado no console.
-Consulte [integração e roteiro de teste](docs/firebase-auth.md).
+`android/app/google-services.json` corresponde ao pacote
+`br.com.zelo.zelo_mobile`. Authentication por e-mail/senha foi habilitado pelo
+responsável. **Firestore de produção ainda precisa de região, banco e regras.**
+Os testes locais de backend usam exclusivamente o projeto demo dos emuladores.
 
-Para listar os dispositivos disponíveis:
-
-```sh
-flutter devices
+```text
+lib/app/        bootstrap, tema, rotas e coordenação de alertas
+lib/core/       banco, repositório, controle, plataforma e sincronização
+lib/features/   autenticação, contatos, monitoramento, emergência,
+                histórico, preparação, perfil e ajustes
+android/app/src/main/kotlin/   serviço, detector e journal criptografado
+test/           domínio, repositório, controle, widgets e acessibilidade
+integration_test/             Android e Firebase em emuladores
+tools/firestore/              testes das regras
 ```
 
 ## Verificações
 
-A pipeline em `.github/workflows/flutter.yml` executa os checks abaixo e
-valida o lockfile. A prova física permanece separada; consulte
-[acompanhamento Android](docs/poc-android.md) e [ADR de baseline](docs/adr/ADR-001-baseline-inicial.md).
-
 ```sh
-dart format --set-exit-if-changed lib test
+dart format --output=none --set-exit-if-changed lib test integration_test
 flutter analyze
 flutter test
-flutter build apk --debug
+python tools/check_secrets.py
+flutter build apk --debug --target-platform android-arm64
 ```
 
-## Versionamento e histórico
+Com JDK configurado, executar `gradlew.bat :app:testDebugUnitTest` em `android`
+(Linux: `./gradlew`). Regras e integrações: [instruções e evidências](docs/estado-mvp.md).
+O CI em `.github/workflows/flutter.yml` cobre checks Flutter, build debug,
+testes JVM e regras em emulador. Execução remota depende de envio posterior.
 
-O projeto inicia a linha de versão `1.0.0` para o MVP. A numeração não indica
-que o app esteja pronto ou lançado: a versão estável só deverá ser considerada
-após a implementação e aprovação dos critérios de operação, segurança,
-privacidade, testes e validação física descritos no planejamento.
+Release exige chave própria em `android/key.properties`, conforme o exemplo.
+Não versionar esse arquivo nem o keystore. Não há fallback para assinatura debug.
 
-As mudanças relevantes são registradas no [CHANGELOG](./CHANGELOG.md), seguindo
-o formato do [Keep a Changelog](https://keepachangelog.com/pt-BR/0.3.0/).
+## Antes de lançar
+
+Ainda faltam implantação Firestore, calibração e ensaios físicos, aceites de
+e-mail/compartilhamento reais, identidade e contato na política de privacidade
+e assinatura de distribuição. Ver [estado do MVP](docs/estado-mvp.md),
+[POC Android](docs/poc-android.md), [planejamento](docs/plano-implementacao.md)
+e [rastreabilidade](docs/rastreabilidade.md).
+
+Mudanças no [CHANGELOG](CHANGELOG.md). Paleta em [paleta.md](paleta.md).

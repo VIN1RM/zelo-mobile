@@ -1,0 +1,122 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function owner(uid) { return request.auth != null && request.auth.uid == uid && request.auth.token.email_verified == true; }
+    function recent() { return request.auth.token.auth_time * 1000 >= request.time.toMillis() - 300000; }
+    function writable(uid) { return owner(uid) && !exists(/databases/$(database)/documents/account_deletions/$(uid)); }
+    function envelope(uid) {
+      let value = request.resource.data;
+      return value.keys().hasAll(['id','userId','revision','deleted','data','updatedAt'])
+        && value.keys().hasOnly(['id','userId','revision','deleted','data','updatedAt'])
+        && value.userId == uid && value.id is string && value.id.size() <= 128
+        && value.revision is int && value.revision > 0 && value.deleted is bool
+        && value.updatedAt is int && value.updatedAt >= 0 && value.data is map && value.data.id == value.id;
+    }
+    function nextRevision() {
+      return request.resource.data.id == resource.data.id && request.resource.data.revision > resource.data.revision
+        && (!resource.data.deleted || request.resource.data.deleted);
+    }
+    function optionalText(value,max) { return value == null || (value is string && value.size() <= max); }
+    function location(value) {
+      return value == null || (value is map && value.keys().hasOnly(['latitude','longitude','accuracy','capturedAt'])
+        && value.latitude is number && value.latitude >= -90 && value.latitude <= 90
+        && value.longitude is number && value.longitude >= -180 && value.longitude <= 180
+        && value.accuracy is number && value.accuracy >= 0 && value.capturedAt is int && value.capturedAt >= 0);
+    }
+    function contact() {
+      let value=request.resource.data.data;
+      return value.keys().hasOnly(['id','name','priority','phone','email'])
+        && value.name is string && value.name.size() >= 2 && value.name.size() <= 80
+        && value.priority in [1,2,3]
+        && optionalText(value.phone,16) && optionalText(value.email,254)
+        && (value.phone != null || value.email != null)
+        && (value.phone == null || value.phone.matches('^\\+[1-9][0-9]{7,14}$'))
+        && (value.email == null || value.email.matches('^[^ @]+@[^ @]+[.][^ @]+$'));
+    }
+    function distinctContact(uid,slot,other) {
+      let path=/databases/$(database)/documents/users/$(uid)/emergency_contacts/$(other);
+      return slot == other || !existsAfter(path) || getAfter(path).data.deleted || request.resource.data.deleted
+        || (getAfter(path).data.data.priority != request.resource.data.data.priority
+          && (request.resource.data.data.phone == null || getAfter(path).data.data.phone != request.resource.data.data.phone)
+          && (request.resource.data.data.email == null || getAfter(path).data.data.email != request.resource.data.data.email));
+    }
+    function session() {
+      let value=request.resource.data.data;
+      return value.keys().hasOnly(['id','startedAt','endedAt','status','position','location','preserved'])
+        && value.startedAt is int && (value.endedAt == null || value.endedAt is int)
+        && value.status in ['PREPARING','ACTIVE','LIMITED','COMPLETED','INTERRUPTED']
+        && value.position in ['pocket','mount'] && value.preserved is bool && location(value.location);
+    }
+    function incident() {
+      let value=request.resource.data.data;
+      return value.keys().hasOnly(['id','type','sessionId','occurredAt','deadline','outcome','condition','preserved','position','location','detectionVersion'])
+        && value.type in ['POSSIBLE_ACCIDENT','MANUAL_SOS'] && value.occurredAt is int
+        && optionalText(value.sessionId,128) && (value.deadline == null || value.deadline is int)
+        && value.outcome in ['PENDING','CANCELLED','HELP_REQUESTED','TIMED_OUT']
+        && value.condition in ['UNKNOWN','SAFE','NEEDS_HELP'] && value.preserved is bool
+        && (value.position == null || value.position in ['pocket','mount']) && location(value.location);
+    }
+    function immutableOrigin() {
+      let old=resource.data.data;
+      let value=request.resource.data.data;
+      return old.type == value.type && old.sessionId == value.sessionId && old.occurredAt == value.occurredAt
+        && old.deadline == value.deadline && old.position==value.position
+        && old.get('detectionVersion',null)==value.get('detectionVersion',null)
+        && (old.outcome == 'PENDING' || old.outcome == value.outcome);
+    }
+    match /account_deletions/{uid} {
+      allow read: if owner(uid);
+      allow create: if owner(uid) && recent() && request.resource.data.keys().hasOnly(['userId','phase','createdAt'])
+        && request.resource.data.userId==uid && request.resource.data.phase=='REQUESTED' && request.resource.data.createdAt is int;
+      allow update: if owner(uid) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['phase'])
+        && request.resource.data.phase=='DATA_REMOVED';
+      allow delete: if false;
+    }
+    match /users/{uid} {
+      allow read: if owner(uid);
+      allow create: if writable(uid) && envelope(uid) && request.resource.data.id==uid
+        && request.resource.data.data.keys().hasOnly(['id','name','email'])
+        && request.resource.data.data.name is string && request.resource.data.data.name.size()>=2 && request.resource.data.data.name.size()<=80
+        && request.resource.data.data.email is string && request.resource.data.data.email==request.auth.token.email;
+      allow update: if writable(uid) && envelope(uid) && nextRevision()
+        && request.resource.data.data.keys().hasOnly(['id','name','email'])
+        && request.resource.data.data.name is string && request.resource.data.data.name.size()>=2 && request.resource.data.data.name.size()<=80
+        && request.resource.data.data.email==request.auth.token.email;
+      allow delete: if owner(uid) && recent();
+      match /emergency_contacts/{slot} {
+        allow read: if owner(uid);
+        allow create: if writable(uid) && slot in ['1','2','3'] && envelope(uid) && contact()
+          && distinctContact(uid,slot,'1') && distinctContact(uid,slot,'2') && distinctContact(uid,slot,'3');
+        allow update: if writable(uid) && slot in ['1','2','3'] && envelope(uid) && contact()
+          && (nextRevision() || (resource.data.deleted && resource.data.id!=request.resource.data.id && request.resource.data.revision>0))
+          && distinctContact(uid,slot,'1') && distinctContact(uid,slot,'2') && distinctContact(uid,slot,'3');
+        allow delete: if owner(uid);
+      }
+      match /monitoring_sessions/{id} {
+        allow read: if owner(uid);
+        allow create: if writable(uid) && envelope(uid) && request.resource.data.id==id && session();
+        allow update: if writable(uid) && envelope(uid) && request.resource.data.id==id && nextRevision() && session()
+          && request.resource.data.data.startedAt==resource.data.data.startedAt;
+        allow delete: if owner(uid);
+      }
+      match /incidents/{id} {
+        allow read: if owner(uid);
+        allow create: if writable(uid) && envelope(uid) && request.resource.data.id==id && incident();
+        allow update: if writable(uid) && envelope(uid) && request.resource.data.id==id && nextRevision() && incident() && immutableOrigin();
+        allow delete: if owner(uid);
+        match /updates/{updateId} {
+          allow read: if owner(uid);
+          allow create: if writable(uid) && envelope(uid) && request.resource.data.id==updateId
+            && request.resource.data.data.keys().hasOnly(['id','incidentId','previousCondition','condition','createdAt'])
+            && request.resource.data.data.incidentId==id && request.resource.data.data.condition in ['SAFE','NEEDS_HELP']
+            && request.resource.data.data.previousCondition in ['UNKNOWN','SAFE','NEEDS_HELP']
+            && request.resource.data.data.createdAt is int
+            && exists(/databases/$(database)/documents/users/$(uid)/incidents/$(id));
+          allow update: if writable(uid) && envelope(uid) && nextRevision() && request.resource.data.deleted
+            && request.resource.data.data==resource.data.data;
+          allow delete: if owner(uid);
+        }
+      }
+    }
+  }
+}

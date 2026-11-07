@@ -91,7 +91,12 @@ class FirebaseAuthRepository implements AuthRepository {
 
   @override
   Future<void> refreshUser() => _run(() async {
-    await _requireUser().reload();
+    try {
+      await _requireUser().reload();
+    } on FirebaseAuthException catch (error) {
+      if (error.code == 'user-not-found') await _auth.signOut();
+      rethrow;
+    }
     await _requireUser().getIdToken(true);
   });
 

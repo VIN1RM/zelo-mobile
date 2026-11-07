@@ -1,95 +1,157 @@
+import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 import 'package:go_router/go_router.dart';
+import '../../../../core/platform/device_permissions.dart';
+import '../../../../shared/widgets/app_view.dart';
 
-import '../../../../shared/widgets/zelo_logo.dart';
-import '../../../auth/presentation/providers/auth_providers.dart';
-
-class SettingsScreen extends ConsumerWidget {
+class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
-
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authUserProvider).asData?.value;
-    final action = ref.watch(authControllerProvider);
-    return Scaffold(
+  Widget build(BuildContext context) => AppView(
+    builder: (context, data, app) => Scaffold(
       appBar: AppBar(title: const Text('Ajustes')),
       body: ListView(
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
         children: [
-          const Center(child: ZeloLogo()),
+          const SectionHeading(
+            'Do seu jeito',
+            subtitle:
+                'Cuide da sua conta e deixe o aparelho pronto para o próximo trajeto.',
+          ),
+          AppActionTile(
+            icon: AppIcons.personOutlineRounded,
+            title: 'Minha conta',
+            subtitle: 'Nome, acesso e exclusão dos seus dados',
+            onTap: () => context.push('/conta'),
+          ),
           const SizedBox(height: 20),
+          const SectionHeading('Pronto para sair'),
+          AppActionTile(
+            icon: AppIcons.factCheckOutlined,
+            title: 'Preparar proteção',
+            subtitle: 'Revise os passos antes de começar',
+            onTap: () => context.push('/preparar'),
+          ),
+          AppActionTile(
+            icon: AppIcons.sensorsRounded,
+            title: 'Diagnóstico do aparelho',
+            subtitle: 'Confira sensores, notificações e bateria',
+            onTap: () => context.push('/ajustes/diagnostico'),
+          ),
+          AppActionTile(
+            icon: AppIcons.notificationsOutlined,
+            title: 'Permissões do aplicativo',
+            subtitle: 'Gerencie o acesso nos ajustes do Android',
+            external: true,
+            onTap: () => uiAction(context, DevicePermissions.openSettings),
+          ),
+          AppActionTile(
+            icon: AppIcons.playCircleOutlineRounded,
+            title: 'Conhecer o alerta',
+            subtitle: 'Demonstração sem mensagens ou registros reais',
+            onTap: () => context.push('/demonstracao'),
+          ),
+          const SizedBox(height: 20),
+          const SectionHeading('Seus dados'),
+          AppActionTile(
+            icon: AppIcons.cloudSyncOutlined,
+            title: 'Sincronização',
+            subtitle: data.pendingSync == 0
+                ? 'Nenhum envio pendente · sincronização automática'
+                : '${data.pendingSync} atualizações aguardando envio',
+            onTap: () => context.push('/sincronizacao'),
+          ),
+          AppActionTile(
+            icon: AppIcons.privacyTipOutlined,
+            title: 'Privacidade e armazenamento',
+            subtitle: 'Entenda o que fica no aparelho e na nuvem',
+            onTap: () => context.push('/privacidade'),
+          ),
+          const SizedBox(height: 20),
+          const SectionHeading('Sobre o ZELO'),
+          AppActionTile(
+            icon: AppIcons.infoOutlineRounded,
+            title: 'Sobre e licenças',
+            subtitle: 'Versão e créditos do aplicativo',
+            onTap: () => showAboutDialog(
+              context: context,
+              applicationName: 'ZELO',
+              applicationVersion: '1.0.0 · Em desenvolvimento',
+              applicationLegalese: 'Aplicativo auxiliar e experimental.',
+            ),
+          ),
           Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    user?.name.isNotEmpty == true ? user!.name : 'Minha conta',
-                    style: Theme.of(context).textTheme.titleLarge,
-                  ),
-                  Text(user?.email ?? ''),
-                  const Text('E-mail verificado'),
-                  if (action.hasError) Text(action.error.toString()),
-                  TextButton(
-                    onPressed: action.isLoading
-                        ? null
-                        : () async {
-                            final confirmed = await showDialog<bool>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Sair da conta?'),
-                                content: const Text(
-                                  'Você precisará entrar novamente para acessar o ZELO.',
+            child: ExpansionTile(
+              leading: const IconBadge(AppIcons.historyRounded),
+              title: const Text('Verificações recentes'),
+              subtitle: const Text('Atividade do aplicativo neste aparelho'),
+              children: [
+                Builder(
+                  builder: (context) => FutureBuilder(
+                    future: app.repository.store.db.query(
+                      'diagnostics',
+                      where: 'user_id=?',
+                      whereArgs: [app.repository.uid],
+                      orderBy: 'created_at DESC',
+                      limit: 20,
+                    ),
+                    builder: (context, snapshot) => Column(
+                      children: [
+                        if (snapshot.hasError)
+                          const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text(
+                              'Não foi possível consultar as verificações. Tente abrir esta seção novamente.',
+                            ),
+                          ),
+                        if (snapshot.connectionState == ConnectionState.waiting)
+                          const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: CircularProgressIndicator(
+                              semanticsLabel: 'Consultando verificações',
+                            ),
+                          ),
+                        if (snapshot.hasData && snapshot.data!.isEmpty)
+                          const Padding(
+                            padding: EdgeInsets.all(16),
+                            child: Text(
+                              'Nenhuma atividade recente para mostrar.',
+                            ),
+                          ),
+                        for (final log in snapshot.data ?? [])
+                          ListTile(
+                            title: Text(diagnosticLabel(log['code'])),
+                            subtitle: Text(
+                              dateLabel(
+                                DateTime.fromMillisecondsSinceEpoch(
+                                  log['created_at'] as int,
+                                  isUtc: true,
                                 ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(context, false),
-                                    child: const Text('Cancelar'),
-                                  ),
-                                  FilledButton(
-                                    onPressed: () =>
-                                        Navigator.pop(context, true),
-                                    child: const Text('Sair'),
-                                  ),
-                                ],
                               ),
-                            );
-                            if (confirmed == true && context.mounted) {
-                              await ref
-                                  .read(authControllerProvider.notifier)
-                                  .run(
-                                    (actions) => actions.repository.signOut(),
-                                  );
-                            }
-                          },
-                    child: const Text('Sair da conta'),
+                            ),
+                          ),
+                        const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text(
+                            'Sem dados pessoais. As verificações ficam por até sete dias, com limite de 200 registros.',
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.fact_check_outlined),
-              title: const Text('Diagnóstico do aparelho'),
-              subtitle: const Text(
-                'Consulte sensores e notificações do Android.',
-              ),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => context.push('/ajustes/diagnostico'),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Text(
-            'O monitoramento e o SOS ainda estão em desenvolvimento. '
-            'O diagnóstico não ativa a proteção.',
+          const SizedBox(height: 20),
+          const StatusPanel(
+            title: 'Em evolução, com transparência',
+            message:
+                'ZELO 1.0.0 · Em desenvolvimento. A detecção é experimental. Os testes físicos e os critérios de publicação ainda estão em validação.',
+            icon: AppIcons.shieldOutlined,
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
 }

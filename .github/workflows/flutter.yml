@@ -31,7 +31,29 @@ jobs:
           channel: stable
           cache: true
       - run: flutter pub get --enforce-lockfile
-      - run: dart format --output=none --set-exit-if-changed lib test
+      - run: python3 tools/check_secrets.py
+      - run: dart format --output=none --set-exit-if-changed lib test integration_test
       - run: flutter analyze --no-pub
       - run: flutter test --no-pub
       - run: flutter build apk --debug --no-pub
+      - run: ./gradlew :app:testDebugUnitTest
+        working-directory: android
+
+  firestore-rules:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: tools/firestore/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - run: npm ci --prefix tools/firestore
+      - run: npm audit --prefix tools/firestore --audit-level=high
+      - run: npm install --global firebase-tools@15.22.4
+      - run: firebase emulators:exec --project demo-zelo --only firestore "npm --prefix tools/firestore test"

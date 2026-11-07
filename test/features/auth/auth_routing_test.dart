@@ -1,3 +1,5 @@
+import 'package:zelo_mobile/core/application/app_controller.dart';
+import '../../support/fake_app_controller.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -52,7 +54,10 @@ void main() {
       final repository = FakeAuthRepository(user: unverifiedUser);
       addTearDown(repository.dispose);
       final container = ProviderContainer(
-        overrides: [authRepositoryProvider.overrideWithValue(repository)],
+        overrides: [
+          authRepositoryProvider.overrideWithValue(repository),
+          appControllerProvider.overrideWith(FakeAppController.new),
+        ],
       );
       addTearDown(container.dispose);
       await tester.pumpWidget(
@@ -64,7 +69,7 @@ void main() {
 
       repository.emit(verifiedUser);
       await tester.pumpAndSettle();
-      expect(find.text('O ZELO ainda está sendo preparado'), findsOneWidget);
+      expect(find.text('Proteção desativada'), findsOneWidget);
 
       await repository.signOut();
       await tester.pumpAndSettle();

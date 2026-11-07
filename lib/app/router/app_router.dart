@@ -9,6 +9,14 @@ import '../../features/auth/presentation/screens/session_screen.dart';
 import '../../features/auth/presentation/screens/verify_email_screen.dart';
 import '../../features/auth/presentation/screens/welcome_screen.dart';
 import '../../features/contacts/presentation/screens/contacts_screen.dart';
+import '../../features/contacts/presentation/screens/contact_form_screen.dart';
+import '../../features/emergency/presentation/screens/emergency_screens.dart';
+import '../../features/history/presentation/screens/record_details_screen.dart';
+import '../../features/onboarding/presentation/screens/preparation_screen.dart';
+import '../../features/profile/presentation/screens/profile_screen.dart';
+import '../../features/settings/presentation/screens/demo_screen.dart';
+import '../../features/settings/presentation/screens/sync_screen.dart';
+import '../../features/settings/presentation/screens/privacy_screen.dart';
 import '../../features/history/presentation/screens/history_screen.dart';
 import '../../features/home/presentation/screens/home_screen.dart';
 import '../../features/settings/presentation/screens/device_diagnostics_screen.dart';
@@ -51,6 +59,52 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) =>
         authRedirect(ref.read(authUserProvider), state.uri.path),
     routes: [
+      GoRoute(
+        path: '/preparar',
+        builder: (context, state) => const PreparationScreen(),
+      ),
+      GoRoute(
+        path: '/alerta/:id',
+        builder: (context, state) =>
+            AlertScreen(id: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/ajuda/:id',
+        builder: (context, state) =>
+            HelpScreen(id: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/historico/:type/:id',
+        builder: (context, state) => RecordDetailsScreen(
+          type: state.pathParameters['type']!,
+          id: state.pathParameters['id']!,
+        ),
+      ),
+      GoRoute(
+        path: '/contatos/novo',
+        builder: (context, state) => const ContactFormScreen(),
+      ),
+      GoRoute(
+        path: '/contatos/:id/editar',
+        builder: (context, state) =>
+            ContactFormScreen(id: state.pathParameters['id']!),
+      ),
+      GoRoute(
+        path: '/conta',
+        builder: (context, state) => const ProfileScreen(),
+      ),
+      GoRoute(
+        path: '/demonstracao',
+        builder: (context, state) => const DemoScreen(),
+      ),
+      GoRoute(
+        path: '/sincronizacao',
+        builder: (context, state) => const SyncScreen(),
+      ),
+      GoRoute(
+        path: '/privacidade',
+        builder: (context, state) => const PrivacyScreen(),
+      ),
       GoRoute(
         path: '/abertura',
         builder: (context, state) => const SessionScreen(),

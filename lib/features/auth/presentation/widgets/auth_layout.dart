@@ -1,3 +1,4 @@
+import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -95,7 +96,9 @@ class _PasswordFieldState extends State<PasswordField> {
             ? 'Mostrar ${widget.label.toLowerCase()}'
             : 'Ocultar ${widget.label.toLowerCase()}',
         icon: Icon(
-          _obscure ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+          _obscure
+              ? AppIcons.visibilityOutlined
+              : AppIcons.visibilityOffOutlined,
         ),
       ),
     ),
