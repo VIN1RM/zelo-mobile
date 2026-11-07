@@ -38,8 +38,8 @@ repetidos durante a tentativa.
 
 ## Verificação
 
-Análise estática limpa e 62 testes Flutter aprovados. Dezoito verificações
-de apresentação exercitam nove telas em 390 × 844 e 320 × 700, a segunda com
+Análise estática limpa e 69 testes Flutter aprovados. Vinte verificações
+de apresentação exercitam dez telas em 390 × 844 e 320 × 700, a segunda com
 texto em 200%. Incluem rolagem, traduções e exceções de layout. As prévias
 visuais foram geradas com Karla e ícones reais, usando somente dados fictícios.
 

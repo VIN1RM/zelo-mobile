@@ -13,6 +13,14 @@ e o projeto inicia a linha de desenvolvimento da versão `1.0.0`.
 
 ### Adicionado
 
+- Tela Recursos do aparelho para a atividade acadêmica, com câmera e prévia,
+  latitude/longitude explícitas, mapa e cópia de coordenadas.
+- Acelerômetro X/Y/Z ao vivo via EventChannel, com pausa por ciclo de vida,
+  aviso de sensor indisponível e atualização visual limitada.
+- Notificação local de teste agendada em cinco segundos, identificada como
+  TESTE, isolada dos alertas operacionais e sem envio de mensagens.
+- Permissão contextual de câmera e roteiro de cenários em `docs/trabalho-faculdade.md`.
+
 - MVP operacional de desenvolvimento: contatos, preparação, sessões Android,
   detector experimental, alerta persistido e SOS com compartilhamento assistido.
 - SQLCipher, journal nativo criptografado, GPS pontual e fotos locais AES-GCM.

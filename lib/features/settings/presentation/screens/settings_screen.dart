@@ -27,6 +27,13 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 20),
           const SectionHeading('Pronto para sair'),
           AppActionTile(
+            icon: AppIcons.sensorsRounded,
+            title: 'Recursos do aparelho',
+            subtitle:
+                'Câmera, coordenadas, notificação de teste e eixos X, Y e Z',
+            onTap: () => context.push('/ajustes/recursos'),
+          ),
+          AppActionTile(
             icon: AppIcons.factCheckOutlined,
             title: 'Preparar proteção',
             subtitle: 'Revise os passos antes de começar',
