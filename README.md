@@ -46,12 +46,16 @@ contínuo.
 A base atual contém:
 
 - Inicialização Flutter com Riverpod.
+- Integração Firebase Android e fluxo de cadastro, login, recuperação e
+  verificação de e-mail, com proteção das rotas e saída da conta.
 - Navegação principal entre Início, Contatos, Histórico e Ajustes.
 - Tema Material 3 baseado na [paleta da aplicação](./paleta.md).
+- Logo oficial, fonte Karla local e ícone adaptativo Android.
+- Diagnóstico do aparelho em Ajustes, sem ativar monitoramento.
 - Telas iniciais que identificam explicitamente as funcionalidades ainda não
   disponíveis.
 
-Contatos, histórico e ajustes ainda são telas informativas. A proteção não
+Contatos e histórico ainda são telas informativas. A proteção não
 pode ser ativada nesta versão.
 
 ## Tecnologias e organização
@@ -60,8 +64,9 @@ pode ser ativada nesta versão.
 - **Interface:** Flutter e Dart.
 - **Estado e rotas:** Riverpod e GoRouter.
 - **Arquitetura planejada:** Feature-First com Clean Architecture pragmática.
-- **Persistência e serviços planejados:** SQLite local, Outbox e Firebase
-  Authentication/Cloud Firestore, sujeitos aos gates técnicos da documentação.
+- **Autenticação:** Firebase Authentication por e-mail/senha.
+- **Persistência e serviços planejados:** SQLite local, Outbox e Cloud Firestore,
+  sujeitos aos gates técnicos da documentação.
 
 ```text
 lib/
@@ -69,6 +74,7 @@ lib/
     router/                 # Rotas e navegação principal
     theme/                  # Cores e tema Material 3
   features/
+    auth/                   # Acesso, verificação e recuperação
     home/                   # Início
     contacts/               # Contatos de emergência
     history/                # Histórico
@@ -86,6 +92,8 @@ necessário criar diretórios vazios para partes ainda não iniciadas.
 ## Requisitos para desenvolvimento
 
 - Flutter compatível com a restrição Dart definida em `pubspec.yaml`.
+- Baseline deste ciclo: Flutter **3.41.4** / Dart **3.11.1**; versão Flutter
+  registrada em `.flutter-version`. Android API 26+, compile/target SDK 36.
 - Android SDK e um emulador ou dispositivo Android para executar o app.
 
 O projeto também contém diretórios de plataforma gerados pelo Flutter, mas o
@@ -100,6 +108,11 @@ flutter pub get
 flutter run -d <android-device>
 ```
 
+O Android usa `android/app/google-services.json`, processado pelo plugin Google
+Services, para inicializar o Firebase. O arquivo deve corresponder ao pacote
+`br.com.zelo.zelo_mobile`; E-mail/senha precisa estar habilitado no console.
+Consulte [integração e roteiro de teste](docs/firebase-auth.md).
+
 Para listar os dispositivos disponíveis:
 
 ```sh
@@ -107,6 +120,10 @@ flutter devices
 ```
 
 ## Verificações
+
+A pipeline em `.github/workflows/flutter.yml` executa os checks abaixo e
+valida o lockfile. A prova física permanece separada; consulte
+[acompanhamento Android](docs/poc-android.md) e [ADR de baseline](docs/adr/ADR-001-baseline-inicial.md).
 
 ```sh
 dart format --set-exit-if-changed lib test

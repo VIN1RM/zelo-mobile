@@ -13,6 +13,17 @@ e o projeto inicia a linha de desenvolvimento da versão `1.0.0`.
 
 ### Adicionado
 
+- Firebase Core/Auth e configuração Google Services para Android.
+- Telas de boas-vindas, cadastro, entrada, recuperação e verificação de e-mail.
+- Guards de autenticação/verificação, atualização do token e saída da conta.
+- Validação de senha e intervalo de reenvio; tratamento seguro de erros de acesso.
+
+- Logo oficial no aplicativo e no ícone adaptativo Android.
+- Fonte Karla local com licença e tema de formulários.
+- Diagnóstico Android de sensores, notificações e otimização de bateria.
+- Baseline Flutter versionada e pipeline de formatação, análise, testes e APK.
+- ADR inicial e acompanhamento da prova técnica Android.
+
 - Estrutura inicial Flutter organizada por funcionalidades.
 - Navegação principal para Início, Contatos, Histórico e Ajustes.
 - Tema Material 3 com as cores definidas em `paleta.md`.
@@ -21,3 +32,8 @@ e o projeto inicia a linha de desenvolvimento da versão `1.0.0`.
 - Testes de widgets para a tela inicial e navegação.
 - README com visão geral, escopo planejado, limitações e instruções de
   desenvolvimento.
+
+### Alterado
+
+- Kotlin atualizado para 2.4.21, necessário para os metadados do Firebase Auth atual.
+- Configuração Kotlin migrada para `compilerOptions`.

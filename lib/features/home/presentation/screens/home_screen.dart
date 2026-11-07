@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../app/theme/app_colors.dart';
+import '../../../../shared/widgets/zelo_logo.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -10,11 +11,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Row(
-          children: [
-            Icon(Icons.shield, color: AppColors.teal),
-            SizedBox(width: 8),
-            Text('ZELO'),
-          ],
+          children: [ZeloLogo(size: 36), SizedBox(width: 8), Text('ZELO')],
         ),
       ),
       body: SafeArea(
