@@ -51,7 +51,7 @@ class HomeScreen extends StatelessWidget {
             const SizedBox(width: 8),
           ],
         ),
-        body: ListView(
+        body: AppScrollView(
           padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
           children: [
             const SectionHeading(
@@ -115,7 +115,10 @@ class HomeScreen extends StatelessWidget {
                             }
                           },
                     icon: const Icon(AppIcons.sosRounded),
-                    label: const Text('SOS — Preciso de ajuda'),
+                    label: LoadingLabel(
+                      loading: data.emergencyBusy,
+                      label: 'SOS — Preciso de ajuda',
+                    ),
                   ),
                   const SizedBox(height: 10),
                   Text(

@@ -1,3 +1,4 @@
+import '../widgets/about_dialog.dart';
 import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +12,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) => AppView(
     builder: (context, data, app) => Scaffold(
       appBar: AppHeader(title: const Text('Ajustes')),
-      body: ListView(
+      body: AppScrollView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
         children: [
           const SectionHeading(
@@ -81,12 +82,10 @@ class SettingsScreen extends StatelessWidget {
             icon: AppIcons.infoOutlineRounded,
             title: 'Sobre e licenças',
             subtitle: 'Versão e créditos do aplicativo',
-            onTap: () => showAboutDialog(
-              context: context,
-              applicationName: 'ZELO',
-              applicationVersion: '1.0.0 · Em desenvolvimento',
-              applicationLegalese: 'Aplicativo auxiliar e experimental.',
-            ),
+            onTap: () async {
+              final openLicenses = await showZeloAboutDialog(context);
+              if (openLicenses && context.mounted) context.push('/licencas');
+            },
           ),
           Card(
             child: ExpansionTile(

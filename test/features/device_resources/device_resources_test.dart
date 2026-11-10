@@ -126,14 +126,15 @@ void main() {
       addTearDown(gateway.readings.close);
       await open(tester, gateway);
       await reveal(tester, 'Testar notificação em 5 segundos');
-      await tester.tap(find.text('Testar notificação em 5 segundos'));
-      await tester.pumpAndSettle();
+      await tester.tap(find.text('Testar notifica\u00e7\u00e3o em 5 segundos'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
       expect(gateway.notifications, 1);
       expect(
         find.textContaining('Teste agendado para daqui a 5 segundos'),
         findsOneWidget,
       );
-      expect(find.text('Teste agendado…'), findsOneWidget);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
       expect(find.text('Testar notificação em 5 segundos'), findsOneWidget);
@@ -191,7 +192,9 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('A localização não foi permitida.'), findsOneWidget);
       await reveal(tester, 'Testar notificação em 5 segundos');
-      await tester.tap(find.text('Testar notificação em 5 segundos'));
+      await tester.tap(find.text('Testar notifica\u00e7\u00e3o em 5 segundos'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 250));
       await tester.pumpAndSettle();
       expect(find.text('Notificações não permitidas.'), findsOneWidget);
       expect(gateway.notifications, 0);

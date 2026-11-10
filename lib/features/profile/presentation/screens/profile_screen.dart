@@ -91,53 +91,71 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     },
               child: const Text('Sair da conta'),
             ),
-            const Divider(),
             const SectionHeading(
               'Excluir conta e dados',
               subtitle:
                   'Uma ação permanente. Leia as informações antes de continuar.',
             ),
-            const Text(
-              'Exige internet, autenticação recente e proteção encerrada. Falhas deixam a operação pendente para nova tentativa. Um marcador técnico mínimo, sem nome, e-mail, contatos ou localização, permanece para impedir que aparelhos antigos recriem os dados. A senha é usada somente para reautenticação.',
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: password,
-              enabled: !data.busy,
-              obscureText: true,
-              enableSuggestions: false,
-              autocorrect: false,
-              decoration: const InputDecoration(
-                labelText: 'Senha para confirmar exclusão',
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              childrenPadding: const EdgeInsets.only(top: 12),
+              leading: Icon(
+                AppIcons.deleteForeverOutlined,
+                color: AppTone.danger.foreground,
               ),
-            ),
-            TextButton.icon(
-              onPressed: data.busy
-                  ? null
-                  : () async {
-                      if (password.text.isEmpty) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Informe sua senha.')),
-                        );
-                        return;
-                      }
-                      if (await confirmAction(
-                            context,
-                            'Excluir definitivamente?',
-                            'Sua conta, registros remotos e arquivos locais serão removidos. Se houver falha, a operação ficará pendente para nova tentativa.',
-                          ) &&
-                          context.mounted) {
-                        await uiAction(
-                          context,
-                          () => app.operation(
-                            () => service().delete(password.text),
-                            allowDuringDeletion: true,
-                          ),
-                        );
-                      }
-                    },
-              icon: const Icon(AppIcons.deleteForeverOutlined),
-              label: const Text('Excluir conta e dados'),
+              title: const Text('Revisar exclus\u00e3o da conta'),
+              subtitle: const Text(
+                'Abra para consultar os detalhes e confirmar sua senha.',
+              ),
+              children: [
+                const Text(
+                  'Exige internet, autenticação recente e proteção encerrada. Falhas deixam a operação pendente para nova tentativa. Um marcador técnico mínimo, sem nome, e-mail, contatos ou localização, permanece para impedir que aparelhos antigos recriem os dados. A senha é usada somente para reautenticação.',
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: password,
+                  enabled: !data.busy,
+                  obscureText: true,
+                  enableSuggestions: false,
+                  autocorrect: false,
+                  decoration: const InputDecoration(
+                    labelText: 'Senha para confirmar exclusão',
+                  ),
+                ),
+                TextButton.icon(
+                  onPressed: data.busy
+                      ? null
+                      : () async {
+                          if (password.text.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Informe sua senha.'),
+                              ),
+                            );
+                            return;
+                          }
+                          if (await confirmAction(
+                                context,
+                                'Excluir definitivamente?',
+                                'Sua conta, registros remotos e arquivos locais serão removidos. Se houver falha, a operação ficará pendente para nova tentativa.',
+                              ) &&
+                              context.mounted) {
+                            await uiAction(
+                              context,
+                              () => app.operation(
+                                () => service().delete(password.text),
+                                allowDuringDeletion: true,
+                              ),
+                            );
+                          }
+                        },
+                  icon: const Icon(AppIcons.deleteForeverOutlined),
+                  style: TextButton.styleFrom(
+                    foregroundColor: AppTone.danger.foreground,
+                  ),
+                  label: const Text('Excluir conta e dados'),
+                ),
+              ],
             ),
             FutureBuilder(
               future: app.repository.preference('deleting'),

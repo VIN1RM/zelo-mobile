@@ -1,3 +1,4 @@
+import 'app_content.dart';
 import '../presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import '../../app/theme/app_colors.dart';
@@ -16,10 +17,12 @@ class ActionFooter extends StatelessWidget {
     child: SafeArea(
       top: false,
       minimum: const EdgeInsets.fromLTRB(24, 16, 24, 20),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: children,
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: children,
+        ),
       ),
     ),
   );
@@ -110,7 +113,10 @@ class SectionHeading extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: Theme.of(context).textTheme.titleLarge),
+        Semantics(
+          header: true,
+          child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+        ),
         if (subtitle != null) ...[
           const SizedBox(height: 6),
           Text(subtitle!, style: Theme.of(context).textTheme.bodyMedium),
@@ -199,6 +205,7 @@ class AppActionTile extends StatelessWidget {
   final bool external;
   @override
   Widget build(BuildContext context) => Card(
+    clipBehavior: Clip.antiAlias,
     child: ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       leading: IconBadge(icon),
@@ -255,15 +262,19 @@ class LoadingLabel extends StatelessWidget {
   final bool loading;
   final String label;
   @override
-  Widget build(BuildContext context) => loading
-      ? SizedBox.square(
-          dimension: 22,
-          child: CircularProgressIndicator(
-            strokeWidth: 2.5,
-            semanticsLabel: label,
-          ),
-        )
-      : Text(label, textAlign: TextAlign.center);
+  Widget build(BuildContext context) => AnimatedSwitcher(
+    duration: const Duration(milliseconds: 180),
+    child: loading
+        ? SizedBox.square(
+            key: const ValueKey('loading'),
+            dimension: 22,
+            child: CircularProgressIndicator(
+              strokeWidth: 2.5,
+              semanticsLabel: label,
+            ),
+          )
+        : Text(label, key: ValueKey(label), textAlign: TextAlign.center),
+  );
 }
 
 class OrganizedListView extends StatelessWidget {
@@ -299,14 +310,6 @@ class OrganizedListView extends StatelessWidget {
       section.add(child);
     }
     flush();
-    return SafeArea(
-      top: false,
-      child: Center(
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 640),
-          child: ListView(padding: padding, children: groups),
-        ),
-      ),
-    );
+    return AppScrollView(padding: padding, children: groups);
   }
 }

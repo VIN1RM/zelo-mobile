@@ -17,6 +17,11 @@ abstract final class AppTheme {
 
     return ThemeData(
       useMaterial3: true,
+      dialogTheme: DialogThemeData(
+        backgroundColor: AppColors.surface,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      ),
       fontFamily: 'Karla',
       colorScheme: colorScheme,
       scaffoldBackgroundColor: AppColors.background,
@@ -120,6 +125,8 @@ abstract final class AppTheme {
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
+        errorMaxLines: 4,
+        helperMaxLines: 4,
         filled: true,
         fillColor: AppColors.surface,
         contentPadding: const EdgeInsets.symmetric(
@@ -139,7 +146,7 @@ abstract final class AppTheme {
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.background,
         foregroundColor: AppColors.navy,
-        centerTitle: false,
+        centerTitle: true,
         scrolledUnderElevation: 0,
         titleTextStyle: TextStyle(
           fontFamily: 'Karla',

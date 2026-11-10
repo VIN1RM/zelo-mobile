@@ -76,6 +76,7 @@ class _AuthFormScreenState extends ConsumerState<AuthFormScreen> {
       children: [
         Form(
           key: _form,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
           child: AutofillGroup(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -83,6 +84,7 @@ class _AuthFormScreenState extends ConsumerState<AuthFormScreen> {
                 if (_register) ...[
                   TextFormField(
                     controller: _name,
+                    textInputAction: TextInputAction.next,
                     enabled: !busy,
                     textCapitalization: TextCapitalization.words,
                     autofillHints: const [AutofillHints.name],
@@ -93,6 +95,12 @@ class _AuthFormScreenState extends ConsumerState<AuthFormScreen> {
                 ],
                 TextFormField(
                   controller: _email,
+                  textInputAction: _reset
+                      ? TextInputAction.done
+                      : TextInputAction.next,
+                  onFieldSubmitted: _reset && !busy && !_resetRequested
+                      ? (_) => _submit()
+                      : null,
                   enabled: !busy,
                   keyboardType: TextInputType.emailAddress,
                   autocorrect: false,

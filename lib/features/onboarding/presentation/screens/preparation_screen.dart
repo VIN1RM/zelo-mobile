@@ -12,7 +12,7 @@ class PreparationScreen extends StatelessWidget {
   Widget build(BuildContext context) => AppView(
     builder: (context, data, app) => Scaffold(
       appBar: AppHeader(title: const Text('Preparar proteção')),
-      body: ListView(
+      body: AppScrollView(
         padding: const EdgeInsets.all(24),
         children: [
           const SectionHeading(
@@ -68,7 +68,10 @@ class PreparationScreen extends StatelessWidget {
                       context.go('/inicio');
                     }
                   },
-            child: const Text('Concluir preparação'),
+            child: LoadingLabel(
+              loading: data.busy,
+              label: 'Concluir prepara\u00e7\u00e3o',
+            ),
           ),
         ],
       ),

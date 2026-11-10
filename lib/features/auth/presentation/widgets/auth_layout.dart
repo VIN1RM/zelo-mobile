@@ -4,23 +4,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../shared/widgets/zelo_logo.dart';
+import '../../../../shared/widgets/app_components.dart';
 import '../providers/auth_providers.dart';
 
 class AuthLayout extends StatelessWidget {
-  const AuthLayout({required this.title, required this.children, super.key});
+  const AuthLayout({
+    required this.title,
+    required this.children,
+    this.headerTitle,
+    super.key,
+  });
 
   final String title;
+  final String? headerTitle;
   final List<Widget> children;
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppHeader(title: Text(title)),
+    appBar: AppHeader(title: Text(headerTitle ?? title)),
     body: SafeArea(
       top: false,
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 480),
           child: ListView(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
             padding: const EdgeInsets.all(24),
             children: [
               const Center(child: ZeloLogo()),
@@ -45,7 +53,15 @@ class AuthFeedback extends ConsumerWidget {
     if (!state.hasError) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
-      child: Semantics(liveRegion: true, child: Text(state.error.toString())),
+      child: Semantics(
+        liveRegion: true,
+        child: StatusPanel(
+          title: 'Vamos tentar novamente',
+          message: state.error.toString(),
+          icon: AppIcons.infoOutlineRounded,
+          tone: AppTone.warning,
+        ),
+      ),
     );
   }
 }

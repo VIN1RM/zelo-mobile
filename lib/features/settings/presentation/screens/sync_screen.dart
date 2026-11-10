@@ -18,7 +18,7 @@ class _SyncScreenState extends State<SyncScreen> {
   Widget build(BuildContext context) => AppView(
     builder: (context, data, app) => Scaffold(
       appBar: AppHeader(title: const Text('Sincronização')),
-      body: ListView(
+      body: AppScrollView(
         padding: const EdgeInsets.all(24),
         children: [
           StatusPanel(
@@ -60,6 +60,7 @@ class _SyncScreenState extends State<SyncScreen> {
             label: Text(syncing ? 'Sincronizando…' : 'Sincronizar agora'),
           ),
           const SizedBox(height: 16),
+          const SectionHeading('Envios e pendências'),
           const Text(
             'Se o mesmo registro mudar em outro aparelho, você poderá revisar qual versão manter. Fotos e observações ficam somente neste aparelho.',
           ),
@@ -88,6 +89,13 @@ class _SyncScreenState extends State<SyncScreen> {
                   )
                 : Column(
                     children: [
+                      if (snapshot.hasData && snapshot.data!.isEmpty)
+                        const AppEmptyState(
+                          icon: AppIcons.cloudDoneOutlined,
+                          title: 'Tudo em dia por aqui',
+                          message:
+                              'Não há alterações na fila de envio deste aparelho.',
+                        ),
                       for (final row in snapshot.data ?? [])
                         Card(
                           child: ListTile(

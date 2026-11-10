@@ -8,6 +8,7 @@ class WelcomeScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => AuthLayout(
+    headerTitle: 'Boas-vindas',
     title: 'Cuidado em cada caminho.',
     children: [
       const Text(

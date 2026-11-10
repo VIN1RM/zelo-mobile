@@ -51,64 +51,103 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ..sort((a, b) => b.at.compareTo(a.at));
       return Scaffold(
         appBar: AppHeader(title: const Text('Histórico')),
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const SectionHeading(
-                    'Seu caminho registrado',
-                    subtitle: 'Consulte trajetos, alertas e pedidos de ajuda.',
-                  ),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
+        body: AppContent(
+          child: CustomScrollView(
+            slivers: [
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 16),
+                sliver: SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      for (final option in const {
-                        'all': 'Todos',
-                        'sessions': 'Trajetos',
-                        'incidents': 'Ocorrências',
-                      }.entries)
-                        ChoiceChip(
-                          label: Text(option.value),
-                          selected: filter == option.key,
-                          onSelected: (_) =>
-                              setState(() => filter = option.key),
+                      const SectionHeading(
+                        'Seu caminho registrado',
+                        subtitle:
+                            'Consulte trajetos, alertas e pedidos de ajuda.',
+                      ),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (final option in const {
+                            'all': 'Todos',
+                            'sessions': 'Trajetos',
+                            'incidents': 'Ocorr\u00eancias',
+                          }.entries)
+                            ChoiceChip(
+                              label: Text(option.value),
+                              selected: filter == option.key,
+                              onSelected: (_) =>
+                                  setState(() => filter = option.key),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Semantics(
+                        liveRegion: true,
+                        child: Text(
+                          '${entries.length} registros',
+                          style: Theme.of(context).textTheme.labelLarge,
                         ),
+                      ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-            Expanded(
-              child: entries.isEmpty
-                  ? ListView(
-                      padding: const EdgeInsets.all(20),
-                      children: const [
-                        AppEmptyState(
-                          icon: AppIcons.historyRounded,
-                          title: 'Nenhum registro neste filtro.',
-                          message:
-                              'Seus trajetos e ocorrências aparecerão aqui. Você poderá consultar os detalhes sempre que precisar.',
-                        ),
-                      ],
-                    )
-                  : ListView.builder(
-                      itemCount: entries.length,
-                      itemBuilder: (context, index) {
-                        final entry = entries[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 6,
+              if (entries.isEmpty)
+                SliverPadding(
+                  padding: const EdgeInsets.all(20),
+                  sliver: SliverToBoxAdapter(
+                    child: AppEmptyState(
+                      icon: AppIcons.historyRounded,
+                      title: 'Nenhum registro neste filtro.',
+                      message:
+                          'Seus trajetos e ocorr\u00eancias aparecer\u00e3o aqui. Consulte os detalhes sempre que precisar.',
+                      action: filter == 'all'
+                          ? null
+                          : OutlinedButton(
+                              onPressed: () => setState(() => filter = 'all'),
+                              child: const Text('Mostrar todos os registros'),
+                            ),
+                    ),
+                  ),
+                ),
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+                sliver: SliverList.builder(
+                  itemCount: entries.length,
+                  itemBuilder: (context, index) {
+                    final entry = entries[index];
+                    final isNewDay =
+                        index == 0 ||
+                        DateUtils.dateOnly(entries[index - 1].at.toLocal()) !=
+                            DateUtils.dateOnly(entry.at.toLocal());
+                    final date = entry.at.toLocal();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (isNewDay)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 12, bottom: 8),
+                            child: Text(
+                              '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}',
+                              style: Theme.of(context).textTheme.titleSmall,
+                            ),
                           ),
+                        Card(
+                          clipBehavior: Clip.antiAlias,
                           child: ListTile(
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
                             leading: IconBadge(
                               entry.type == 'sessions'
                                   ? AppIcons.twoWheeler
                                   : AppIcons.warningAmber,
+                              tone: entry.type == 'sessions'
+                                  ? AppTone.neutral
+                                  : AppTone.warning,
                             ),
                             title: Text(entry.title),
                             subtitle: Text(
@@ -119,11 +158,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
                               '/historico/${entry.type}/${entry.id}',
                             ),
                           ),
-                        );
-                      },
-                    ),
-            ),
-          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
         ),
       );
     },

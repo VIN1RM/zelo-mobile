@@ -2,6 +2,7 @@ import '../../../../shared/widgets/app_header.dart';
 import 'dart:async';
 import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../shared/widgets/app_view.dart';
 
 class DemoScreen extends StatefulWidget {
@@ -36,11 +37,19 @@ class _DemoScreenState extends State<DemoScreen> {
           data.unresolved != null) {
         return Scaffold(
           appBar: AppHeader(title: const Text('Demonstração')),
-          body: const Padding(
-            padding: EdgeInsets.all(24),
-            child: Text(
-              'Encerre a sessão e resolva alertas reais antes de usar a demonstração.',
-            ),
+          body: AppScrollView(
+            children: [
+              AppEmptyState(
+                icon: AppIcons.shieldOutlined,
+                title: 'Cuide do que está em andamento',
+                message:
+                    'Encerre a sessão e resolva alertas reais antes de usar a demonstração.',
+                action: FilledButton(
+                  onPressed: () => context.go('/inicio'),
+                  child: const Text('Voltar ao início'),
+                ),
+              ),
+            ],
           ),
         );
       }

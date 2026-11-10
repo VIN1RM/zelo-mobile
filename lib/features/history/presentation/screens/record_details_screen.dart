@@ -165,7 +165,10 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
                         ),
                         success: 'Observações salvas no aparelho.',
                       ),
-                child: const Text('Salvar observações'),
+                child: LoadingLabel(
+                  loading: data.busy,
+                  label: 'Salvar observa\u00e7\u00f5es',
+                ),
               ),
               SwitchListTile(
                 title: const Text('Preservar ocorrência'),
@@ -193,7 +196,21 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const SectionHeading('Atualizações de condição'),
+                      const SectionHeading(
+                        'Atualiza\u00e7\u00f5es de condi\u00e7\u00e3o',
+                      ),
+                      if (snapshot.connectionState == ConnectionState.waiting)
+                        const LinearProgressIndicator(
+                          semanticsLabel: 'Carregando atualiza\u00e7\u00f5es',
+                        ),
+                      if (snapshot.hasError)
+                        const Text(
+                          'N\u00e3o foi poss\u00edvel carregar as atualiza\u00e7\u00f5es.',
+                        ),
+                      if (snapshot.hasData && updates.isEmpty)
+                        const Text(
+                          'Nenhuma atualiza\u00e7\u00e3o de condi\u00e7\u00e3o registrada.',
+                        ),
                       for (final update in updates)
                         ListTile(
                           title: Text(
@@ -254,6 +271,19 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
                 future: AttachmentStore(app.repository).list(incident.id),
                 builder: (context, snapshot) => Column(
                   children: [
+                    if (snapshot.connectionState == ConnectionState.waiting)
+                      const LinearProgressIndicator(
+                        semanticsLabel: 'Carregando fotos',
+                      ),
+                    if (snapshot.hasError)
+                      const Text(
+                        'N\u00e3o foi poss\u00edvel abrir as fotos neste aparelho.',
+                      ),
+                    if (snapshot.hasData && snapshot.data!.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: Text('Nenhuma foto adicionada.'),
+                      ),
                     for (final row in snapshot.data ?? [])
                       _Photo(
                         key: ValueKey(row['id']),

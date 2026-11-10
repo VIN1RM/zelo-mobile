@@ -62,6 +62,7 @@ void main() {
         '/ajustes',
         '/ajustes/diagnostico',
         '/ajustes/recursos',
+        '/licencas',
       ]) {
         expect(
           authRedirect(const AsyncData<AuthUser?>(null), path),

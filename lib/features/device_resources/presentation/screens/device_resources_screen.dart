@@ -130,7 +130,7 @@ class _DeviceResourcesScreenState extends ConsumerState<DeviceResourcesScreen>
   @override
   Widget build(BuildContext context) => Scaffold(
     appBar: AppHeader(title: const Text('Recursos do aparelho')),
-    body: ListView(
+    body: AppScrollView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
       children: [
         const SectionHeading(
@@ -177,12 +177,9 @@ class _DeviceResourcesScreenState extends ConsumerState<DeviceResourcesScreen>
               FilledButton.icon(
                 onPressed: _cameraBusy ? null : _takePhoto,
                 icon: const Icon(AppIcons.cameraAltOutlined),
-                label: Text(
-                  _cameraBusy
-                      ? 'Abrindo câmera…'
-                      : _photo == null
-                      ? 'Tirar foto'
-                      : 'Tirar outra foto',
+                label: LoadingLabel(
+                  loading: _cameraBusy,
+                  label: _photo == null ? 'Tirar foto' : 'Tirar outra foto',
                 ),
               ),
               const SizedBox(height: 8),
@@ -251,10 +248,9 @@ class _DeviceResourcesScreenState extends ConsumerState<DeviceResourcesScreen>
               FilledButton.icon(
                 onPressed: _locationBusy ? null : _locate,
                 icon: const Icon(AppIcons.locationOnOutlined),
-                label: Text(
-                  _locationBusy
-                      ? 'Obtendo localização…'
-                      : _location == null
+                label: LoadingLabel(
+                  loading: _locationBusy,
+                  label: _location == null
                       ? 'Obter coordenadas'
                       : 'Atualizar coordenadas',
                 ),
@@ -277,10 +273,9 @@ class _DeviceResourcesScreenState extends ConsumerState<DeviceResourcesScreen>
               FilledButton.icon(
                 onPressed: _notificationBusy ? null : _notify,
                 icon: const Icon(AppIcons.notificationsOutlined),
-                label: Text(
-                  _notificationBusy
-                      ? 'Teste agendado…'
-                      : 'Testar notificação em 5 segundos',
+                label: LoadingLabel(
+                  loading: _notificationBusy,
+                  label: 'Testar notificação em 5 segundos',
                 ),
               ),
               if (_notificationMessage != null)

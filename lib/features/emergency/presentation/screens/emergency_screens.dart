@@ -69,7 +69,7 @@ class AlertScreen extends StatelessWidget {
                   ],
                 )
               : null,
-          body: SafeArea(
+          body: AppContent(
             child: ListView(
               padding: const EdgeInsets.all(24),
               children: [
@@ -119,6 +119,7 @@ class HelpScreen extends ConsumerStatefulWidget {
 class _HelpScreenState extends ConsumerState<HelpScreen> {
   String? contactId;
   bool sharing = false;
+  String? sharingChannel;
   @override
   Widget build(BuildContext context) => AppView(
     builder: (context, data, app) {
@@ -138,17 +139,28 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
       }
       final name = ref.watch(authUserProvider).asData?.value?.name ?? '';
       Future<void> share(String channel) async {
-        setState(() => sharing = true);
+        if (sharing) return;
+        setState(() {
+          sharing = true;
+          sharingChannel = channel;
+        });
         try {
           await uiAction(
             context,
             () => ShareEmergency(
               app.repository,
             ).share(incident, name, channel, contact),
-            success: 'Tentativa registrada. Envio e entrega não confirmados.',
+            success: channel == 'copy'
+                ? 'Mensagem copiada. Cole no aplicativo de sua preferência.'
+                : 'Canal aberto. Confira a mensagem e conclua o envio.',
           );
         } finally {
-          if (mounted) setState(() => sharing = false);
+          if (mounted) {
+            setState(() {
+              sharing = false;
+              sharingChannel = null;
+            });
+          }
         }
       }
 
@@ -177,8 +189,22 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
             ),
             const SizedBox(height: 16),
             const SectionHeading('1. Escolha quem pode ajudar'),
+            if (data.contacts.isEmpty)
+              AppEmptyState(
+                icon: AppIcons.peopleOutlineRounded,
+                title: 'Sua rede de apoio começa aqui',
+                message:
+                    'Adicione uma pessoa de confiança ou copie a mensagem para escolher um destinatário em outro aplicativo.',
+                action: OutlinedButton(
+                  onPressed: sharing
+                      ? null
+                      : () => context.push('/contatos/novo'),
+                  child: const Text('Adicionar contato'),
+                ),
+              ),
             for (final person in data.contacts)
               Card(
+                clipBehavior: Clip.antiAlias,
                 color: person.id == contact?.id
                     ? Theme.of(context).colorScheme.primaryContainer
                     : null,
@@ -226,7 +252,10 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                   ? null
                   : () => share('whatsapp'),
               icon: const Icon(AppIcons.chatOutlined),
-              label: LoadingLabel(loading: sharing, label: 'Abrir WhatsApp'),
+              label: LoadingLabel(
+                loading: sharingChannel == 'whatsapp',
+                label: 'Abrir WhatsApp',
+              ),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(
@@ -234,12 +263,18 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                   ? null
                   : () => share('email'),
               icon: const Icon(AppIcons.emailOutlined),
-              label: const Text('Abrir e-mail'),
+              label: LoadingLabel(
+                loading: sharingChannel == 'email',
+                label: 'Abrir e-mail',
+              ),
             ),
             TextButton.icon(
               onPressed: sharing ? null : () => share('copy'),
               icon: const Icon(AppIcons.copy),
-              label: const Text('Copiar mensagem'),
+              label: LoadingLabel(
+                loading: sharingChannel == 'copy',
+                label: 'Copiar mensagem',
+              ),
             ),
             TextButton(
               onPressed: () =>

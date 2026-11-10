@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:zelo_mobile/features/settings/presentation/screens/licenses_screen.dart';
 import 'package:zelo_mobile/features/profile/presentation/screens/profile_screen.dart';
 import 'package:zelo_mobile/features/settings/presentation/screens/device_diagnostics_screen.dart';
 import 'package:zelo_mobile/features/settings/presentation/providers/diagnostics_provider.dart';
@@ -51,6 +53,19 @@ class _PreviewController extends AppController {
   }
 }
 
+Future<Map<String, List<List<LicenseParagraph>>>> _previewLicenses() async => {
+  'Flutter': [
+    LicenseEntryWithLineBreaks([
+      'Flutter',
+    ], 'License text for UI preview.').paragraphs.toList(),
+  ],
+  'Karla': [
+    LicenseEntryWithLineBreaks([
+      'Karla',
+    ], 'Font license preview.').paragraphs.toList(),
+  ],
+};
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   sqfliteFfiInit();
@@ -94,6 +109,7 @@ void main() {
   tearDown(() => store.close());
 
   const screens = <String, Widget>{
+    'licencas': LicensesScreen(loader: _previewLicenses),
     'conta': ProfileScreen(),
     'diagnostico': DeviceDiagnosticsScreen(),
     'ocorrencia': RecordDetailsScreen(
@@ -115,13 +131,16 @@ void main() {
   };
 
   for (final screen in screens.entries) {
-    for (final enlarged in [false, true]) {
+    for (final size in [
+      const Size(390, 844),
+      const Size(320, 700),
+      const Size(640, 360),
+    ]) {
+      final enlarged = size.width == 320;
       testWidgets(
-        '${screen.key}: Portuguese labels and ${enlarged ? 'enlarged text on narrow screen' : 'phone layout'}',
+        '${screen.key}: Portuguese labels and ${enlarged ? 'enlarged text on narrow screen' : 'phone layout'} ${size.width}x${size.height}',
         (tester) async {
-          tester.view.physicalSize = enlarged
-              ? const Size(320, 700)
-              : const Size(390, 844);
+          tester.view.physicalSize = size;
           tester.view.devicePixelRatio = 1;
           addTearDown(tester.view.resetPhysicalSize);
           addTearDown(tester.view.resetDevicePixelRatio);
@@ -239,7 +258,8 @@ void main() {
             );
             await tester.pumpAndSettle();
           }
-          if (!enlarged && const bool.fromEnvironment('ZELO_UI_PREVIEW')) {
+          if (size.width == 390 &&
+              const bool.fromEnvironment('ZELO_UI_PREVIEW')) {
             await tester.runAsync(() async {
               final boundary = tester.renderObject<RenderRepaintBoundary>(
                 find.byKey(const ValueKey('preview')),

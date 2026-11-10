@@ -7,6 +7,7 @@ import '../../core/domain/app_failure.dart';
 import 'app_components.dart';
 export '../presentation/app_labels.dart';
 export 'app_components.dart';
+export 'app_content.dart';
 
 class AppView extends ConsumerWidget {
   const AppView({required this.builder, super.key});

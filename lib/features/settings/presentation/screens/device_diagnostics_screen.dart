@@ -93,24 +93,28 @@ class _DeviceDiagnosticsScreenState
                     subtitle: Text('API ${data.androidApi}'),
                   ),
                   _DiagnosticRow(
+                    available: data.accelerometerAvailable,
                     title: 'Acelerômetro',
                     value: data.accelerometerAvailable
                         ? 'Disponível'
                         : 'Indisponível',
                   ),
                   _DiagnosticRow(
+                    available: data.gyroscopeAvailable,
                     title: 'Giroscópio',
                     value: data.gyroscopeAvailable
                         ? 'Disponível'
                         : 'Indisponível',
                   ),
                   _DiagnosticRow(
+                    available: data.notificationsEnabled,
                     title: 'Notificações',
                     value: data.notificationsEnabled
                         ? 'Permitidas pelo sistema'
                         : 'Não permitidas pelo sistema',
                   ),
                   _DiagnosticRow(
+                    available: data.batteryOptimizationExempt,
                     title: 'Otimização de bateria',
                     value: data.batteryOptimizationExempt
                         ? 'Aplicativo isento'
@@ -127,7 +131,10 @@ class _DeviceDiagnosticsScreenState
                 ? null
                 : () => ref.invalidate(deviceDiagnosticsProvider),
             icon: const Icon(AppIcons.refresh),
-            label: const Text('Atualizar diagnóstico'),
+            label: LoadingLabel(
+              loading: diagnostics.isLoading,
+              label: 'Atualizar diagnóstico',
+            ),
           ),
           if (diagnostics.hasValue)
             TextButton(
@@ -141,12 +148,27 @@ class _DeviceDiagnosticsScreenState
 }
 
 class _DiagnosticRow extends StatelessWidget {
-  const _DiagnosticRow({required this.title, required this.value});
+  const _DiagnosticRow({
+    required this.title,
+    required this.value,
+    required this.available,
+  });
 
   final String title;
   final String value;
+  final bool available;
 
   @override
-  Widget build(BuildContext context) =>
-      ListTile(title: Text(title), subtitle: Text(value));
+  Widget build(BuildContext context) => ListTile(
+    leading: Icon(
+      available
+          ? Icons.check_circle_outline_rounded
+          : Icons.info_outline_rounded,
+      color: available
+          ? AppTone.positive.foreground
+          : AppTone.warning.foreground,
+    ),
+    title: Text(title),
+    subtitle: Text(value),
+  );
 }
