@@ -88,6 +88,14 @@ class HomeScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 16),
+            AppActionTile(
+              icon: AppIcons.factCheckOutlined,
+              title: 'Checklist antes do trajeto',
+              subtitle:
+                  'Confira contatos, permissões e sensores antes de iniciar.',
+              onTap: () => context.push('/preparar'),
+            ),
+            const SizedBox(height: 16),
             SectionCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,

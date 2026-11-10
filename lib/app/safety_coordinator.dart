@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../core/application/app_controller.dart';
 import '../features/auth/presentation/providers/auth_providers.dart';
 import 'router/app_router.dart';
+import '../features/settings/data/reminder_gateway.dart';
 
 class SafetyCoordinator extends ConsumerStatefulWidget {
   const SafetyCoordinator({required this.child, super.key});
@@ -16,6 +17,13 @@ class _SafetyCoordinatorState extends ConsumerState<SafetyCoordinator>
   final Set<String> _shownHelp = {};
   String? _uid;
   bool _prompted = false;
+  bool _remindersInitialized = false;
+  Future<void> _activateReminders(String? uid) async {
+    try {
+      await ref.read(reminderGatewayProvider).activate(uid);
+    } catch (_) {}
+  }
+
   @override
   void initState() {
     super.initState();
@@ -45,7 +53,9 @@ class _SafetyCoordinatorState extends ConsumerState<SafetyCoordinator>
             : null,
       ),
     );
-    if (uid != _uid) {
+    if (!_remindersInitialized || uid != _uid) {
+      _remindersInitialized = true;
+      _activateReminders(uid);
       _uid = uid;
       _shownHelp.clear();
       _prompted = false;

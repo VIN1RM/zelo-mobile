@@ -1,4 +1,5 @@
 import '../../features/settings/presentation/screens/licenses_screen.dart';
+import '../../features/settings/presentation/screens/reminders_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -61,6 +62,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     redirect: (context, state) =>
         authRedirect(ref.read(authUserProvider), state.uri.path),
     routes: [
+      GoRoute(
+        path: '/lembretes',
+        builder: (context, state) => const RemindersScreen(),
+      ),
       GoRoute(
         path: '/licencas',
         builder: (context, state) => const LicensesScreen(),

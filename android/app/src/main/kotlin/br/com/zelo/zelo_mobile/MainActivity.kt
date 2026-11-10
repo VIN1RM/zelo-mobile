@@ -31,6 +31,7 @@ class MainActivity : FlutterActivity() {
     }
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        ReminderScheduler(this).connect(flutterEngine.dartExecutor.binaryMessenger)
         deviceResources = DeviceResourcesBridge(this, flutterEngine.dartExecutor.binaryMessenger)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger,"br.com.zelo/permissions").setMethodCallHandler { call,result ->
             when(call.method) {

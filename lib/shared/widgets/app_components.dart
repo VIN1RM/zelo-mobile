@@ -10,9 +10,14 @@ class ActionFooter extends StatelessWidget {
   final List<Widget> children;
   @override
   Widget build(BuildContext context) => DecoratedBox(
-    decoration: const BoxDecoration(
-      color: AppColors.surface,
-      border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surface,
+      border: Border(
+        top: BorderSide(
+          color: Theme.of(context).colorScheme.outlineVariant,
+          width: 0.5,
+        ),
+      ),
     ),
     child: SafeArea(
       top: false,
@@ -48,8 +53,8 @@ class AlertCountdown extends StatelessWidget {
                   value: (seconds / 30).clamp(0, 1),
                   strokeWidth: 8,
                   strokeCap: StrokeCap.round,
-                  backgroundColor: AppColors.emergencyBackground,
-                  color: AppTone.danger.foreground,
+                  backgroundColor: AppTone.danger.backgroundFor(context),
+                  color: AppTone.danger.foregroundFor(context),
                 ),
               ),
               Column(
@@ -59,7 +64,7 @@ class AlertCountdown extends StatelessWidget {
                     '$seconds',
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                       fontSize: 44,
-                      color: AppTone.danger.foreground,
+                      color: AppTone.danger.foregroundFor(context),
                     ),
                   ),
                   const Text('segundos'),
@@ -74,6 +79,24 @@ class AlertCountdown extends StatelessWidget {
 }
 
 extension AppToneColors on AppTone {
+  Color foregroundFor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.light
+      ? foreground
+      : switch (this) {
+          AppTone.neutral => const Color(0xFF9AD5E1),
+          AppTone.positive => const Color(0xFF8BD8AF),
+          AppTone.warning => const Color(0xFFFFD58A),
+          AppTone.danger => const Color(0xFFFFB3BC),
+        };
+  Color backgroundFor(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.light
+      ? background
+      : switch (this) {
+          AppTone.neutral => const Color(0xFF203E4B),
+          AppTone.positive => const Color(0xFF193F32),
+          AppTone.warning => const Color(0xFF473820),
+          AppTone.danger => const Color(0xFF492932),
+        };
   Color get foreground => switch (this) {
     AppTone.neutral => AppColors.teal,
     AppTone.positive => const Color(0xFF116947),
@@ -96,10 +119,10 @@ class IconBadge extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(12),
     decoration: BoxDecoration(
-      color: tone.background,
+      color: tone.backgroundFor(context),
       borderRadius: BorderRadius.circular(16),
     ),
-    child: Icon(icon, color: tone.foreground, size: 24),
+    child: Icon(icon, color: tone.foregroundFor(context), size: 24),
   );
 }
 
@@ -156,13 +179,13 @@ class StatusPanel extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(18),
     decoration: BoxDecoration(
-      color: tone.background,
+      color: tone.backgroundFor(context),
       borderRadius: BorderRadius.circular(20),
     ),
     child: Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, color: tone.foreground, size: 24),
+        Icon(icon, color: tone.foregroundFor(context), size: 24),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -170,16 +193,16 @@ class StatusPanel extends StatelessWidget {
             children: [
               Text(
                 title,
-                style: Theme.of(
-                  context,
-                ).textTheme.titleSmall?.copyWith(color: tone.foreground),
+                style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  color: tone.foregroundFor(context),
+                ),
               ),
               const SizedBox(height: 6),
               Text(
                 message,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodyMedium?.copyWith(color: tone.foreground),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: tone.foregroundFor(context),
+                ),
               ),
             ],
           ),

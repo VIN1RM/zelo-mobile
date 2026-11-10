@@ -1,3 +1,4 @@
+import '../../../../shared/widgets/unsaved_changes_guard.dart';
 import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'dart:convert';
@@ -21,6 +22,7 @@ class RecordDetailsScreen extends StatefulWidget {
 }
 
 class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
+  final _guard = GlobalKey<UnsavedChangesGuardState>();
   final notes = TextEditingController();
   bool initialized = false;
   @override
@@ -51,311 +53,325 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
         initialized = true;
       }
       final location = incident?.location ?? session?.location;
-      return Scaffold(
-        appBar: AppHeader(title: const Text('Detalhes do registro')),
-        body: OrganizedListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            SectionHeading(
-              incident?.label ?? 'Trajeto',
-              subtitle: dateLabel(incident?.occurredAt ?? session!.startedAt),
-            ),
-            StatusPanel(
-              title: outcomeLabel(incident?.outcome ?? session!.status),
-              message: incident == null
-                  ? 'Confira os detalhes deste trajeto abaixo.'
-                  : 'Este é o resultado original do alerta. Você pode atualizar sua condição sem alterar este registro.',
-              icon: incident == null
-                  ? AppIcons.twoWheelerRounded
-                  : AppIcons.shieldOutlined,
-            ),
-            const SizedBox(height: 20),
-            if (session != null) ...[
-              SwitchListTile(
-                title: const Text('Preservar trajeto'),
-                value: session.preserved,
-                onChanged: data.busy
-                    ? null
-                    : (value) => uiAction(
-                        context,
-                        () => app.operation(
-                          () =>
-                              app.repository.preserveSession(session.id, value),
+      return UnsavedChangesGuard(
+        key: _guard,
+        controllers: [notes],
+        child: Scaffold(
+          appBar: AppHeader(title: const Text('Detalhes do registro')),
+          body: OrganizedListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              SectionHeading(
+                incident?.label ?? 'Trajeto',
+                subtitle: dateLabel(incident?.occurredAt ?? session!.startedAt),
+              ),
+              StatusPanel(
+                title: outcomeLabel(incident?.outcome ?? session!.status),
+                message: incident == null
+                    ? 'Confira os detalhes deste trajeto abaixo.'
+                    : 'Este é o resultado original do alerta. Você pode atualizar sua condição sem alterar este registro.',
+                icon: incident == null
+                    ? AppIcons.twoWheelerRounded
+                    : AppIcons.shieldOutlined,
+              ),
+              const SizedBox(height: 20),
+              if (session != null) ...[
+                SwitchListTile(
+                  title: const Text('Preservar trajeto'),
+                  value: session.preserved,
+                  onChanged: data.busy
+                      ? null
+                      : (value) => uiAction(
+                          context,
+                          () => app.operation(
+                            () => app.repository.preserveSession(
+                              session.id,
+                              value,
+                            ),
+                          ),
                         ),
-                      ),
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: const Icon(AppIcons.phoneAndroidRounded),
-                title: const Text('Posi\u00e7\u00e3o do celular'),
-                subtitle: Text(session.position.label),
-              ),
-              if (session.endedAt != null)
+                ),
                 ListTile(
                   contentPadding: EdgeInsets.zero,
-                  leading: const Icon(AppIcons.history),
-                  title: const Text('Fim do trajeto'),
-                  subtitle: Text(dateLabel(session.endedAt!)),
+                  leading: const Icon(AppIcons.phoneAndroidRounded),
+                  title: const Text('Posi\u00e7\u00e3o do celular'),
+                  subtitle: Text(session.position.label),
                 ),
-            ],
-            const SectionHeading('Localização registrada'),
-            Text(
-              location?.describe(DateTime.now().toUtc()) ??
-                  'Localização indisponível.',
-            ),
-            if (location != null) SelectableText(location.mapUrl),
-            if (incident != null) ...[
-              const SizedBox(height: 16),
-              const SectionHeading('Como você está agora?'),
-              Text('Condição atual: ${outcomeLabel(incident.condition)}'),
-              Wrap(
-                spacing: 12,
-                children: [
-                  OutlinedButton(
-                    onPressed: data.busy
-                        ? null
-                        : () => uiAction(
-                            context,
-                            () => app.updateCondition(incident.id, 'SAFE'),
-                          ),
-                    child: const Text('Estou bem'),
+                if (session.endedAt != null)
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(AppIcons.history),
+                    title: const Text('Fim do trajeto'),
+                    subtitle: Text(dateLabel(session.endedAt!)),
                   ),
-                  OutlinedButton(
-                    onPressed: data.busy
-                        ? null
-                        : () => uiAction(
-                            context,
-                            () =>
-                                app.updateCondition(incident.id, 'NEEDS_HELP'),
-                          ),
-                    child: const Text('Preciso de ajuda'),
-                  ),
-                ],
+              ],
+              const SectionHeading('Localização registrada'),
+              Text(
+                location?.describe(DateTime.now().toUtc()) ??
+                    'Localização indisponível.',
               ),
-              const Text(
-                'Atualizações posteriores não alteram o resultado original do alerta.',
-              ),
-              TextButton(
-                onPressed: () => context.push('/ajuda/${incident.id}'),
-                child: const Text('Abrir pedido de ajuda'),
-              ),
-              const SizedBox(height: 16),
-              const SectionHeading(
-                'Suas observações',
-                subtitle: 'Estas informações ficam somente no aparelho.',
-              ),
-              TextField(
-                controller: notes,
-                maxLength: 4000,
-                maxLines: 4,
-                decoration: const InputDecoration(
-                  labelText: 'Observações locais',
+              if (location != null) SelectableText(location.mapUrl),
+              if (incident != null) ...[
+                const SizedBox(height: 16),
+                const SectionHeading('Como você está agora?'),
+                Text('Condição atual: ${outcomeLabel(incident.condition)}'),
+                Wrap(
+                  spacing: 12,
+                  children: [
+                    OutlinedButton(
+                      onPressed: data.busy
+                          ? null
+                          : () => uiAction(
+                              context,
+                              () => app.updateCondition(incident.id, 'SAFE'),
+                            ),
+                      child: const Text('Estou bem'),
+                    ),
+                    OutlinedButton(
+                      onPressed: data.busy
+                          ? null
+                          : () => uiAction(
+                              context,
+                              () => app.updateCondition(
+                                incident.id,
+                                'NEEDS_HELP',
+                              ),
+                            ),
+                      child: const Text('Preciso de ajuda'),
+                    ),
+                  ],
                 ),
-              ),
-              OutlinedButton(
-                onPressed: data.busy
-                    ? null
-                    : () => uiAction(
-                        context,
-                        () => app.operation(
-                          () => app.repository.updateIncident(
-                            incident.id,
-                            notes: notes.text,
+                const Text(
+                  'Atualizações posteriores não alteram o resultado original do alerta.',
+                ),
+                TextButton(
+                  onPressed: () => context.push('/ajuda/${incident.id}'),
+                  child: const Text('Abrir pedido de ajuda'),
+                ),
+                const SizedBox(height: 16),
+                const SectionHeading(
+                  'Suas observações',
+                  subtitle: 'Estas informações ficam somente no aparelho.',
+                ),
+                TextField(
+                  controller: notes,
+                  enabled: !data.busy,
+                  maxLength: 4000,
+                  maxLines: 4,
+                  decoration: const InputDecoration(
+                    labelText: 'Observações locais',
+                  ),
+                ),
+                OutlinedButton(
+                  onPressed: data.busy
+                      ? null
+                      : () async {
+                          final saved = await uiAction(
+                            context,
+                            () => app.operation(
+                              () => app.repository.updateIncident(
+                                incident.id,
+                                notes: notes.text,
+                              ),
+                            ),
+                            success: 'Observações salvas no aparelho.',
+                          );
+                          if (saved) await _guard.currentState?.acceptChanges();
+                        },
+                  child: LoadingLabel(
+                    loading: data.busy,
+                    label: 'Salvar observa\u00e7\u00f5es',
+                  ),
+                ),
+                SwitchListTile(
+                  title: const Text('Preservar ocorrência'),
+                  subtitle: const Text(
+                    'Impede remoção automática por retenção.',
+                  ),
+                  value: incident.preserved,
+                  onChanged: data.busy
+                      ? null
+                      : (value) => uiAction(
+                          context,
+                          () => app.operation(
+                            () => app.repository.updateIncident(
+                              incident.id,
+                              preserved: value,
+                            ),
                           ),
                         ),
-                        success: 'Observações salvas no aparelho.',
-                      ),
-                child: LoadingLabel(
-                  loading: data.busy,
-                  label: 'Salvar observa\u00e7\u00f5es',
                 ),
-              ),
-              SwitchListTile(
-                title: const Text('Preservar ocorrência'),
-                subtitle: const Text('Impede remoção automática por retenção.'),
-                value: incident.preserved,
-                onChanged: data.busy
-                    ? null
-                    : (value) => uiAction(
-                        context,
-                        () => app.operation(
-                          () => app.repository.updateIncident(
-                            incident.id,
-                            preserved: value,
-                          ),
+                FutureBuilder(
+                  future: app.repository.rows('updates'),
+                  builder: (context, snapshot) {
+                    final updates = (snapshot.data ?? [])
+                        .map(LocalStore.decode)
+                        .where((u) => u['incidentId'] == incident.id)
+                        .toList();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SectionHeading(
+                          'Atualiza\u00e7\u00f5es de condi\u00e7\u00e3o',
                         ),
-                      ),
-              ),
-              FutureBuilder(
-                future: app.repository.rows('updates'),
-                builder: (context, snapshot) {
-                  final updates = (snapshot.data ?? [])
-                      .map(LocalStore.decode)
-                      .where((u) => u['incidentId'] == incident.id)
-                      .toList();
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                        if (snapshot.connectionState == ConnectionState.waiting)
+                          const LinearProgressIndicator(
+                            semanticsLabel: 'Carregando atualiza\u00e7\u00f5es',
+                          ),
+                        if (snapshot.hasError)
+                          const Text(
+                            'N\u00e3o foi poss\u00edvel carregar as atualiza\u00e7\u00f5es.',
+                          ),
+                        if (snapshot.hasData && updates.isEmpty)
+                          const Text(
+                            'Nenhuma atualiza\u00e7\u00e3o de condi\u00e7\u00e3o registrada.',
+                          ),
+                        for (final update in updates)
+                          ListTile(
+                            title: Text(
+                              outcomeLabel(update['condition'] as String),
+                            ),
+                            subtitle: Text(
+                              dateLabel(
+                                DateTime.fromMillisecondsSinceEpoch(
+                                  update['createdAt'] as int,
+                                  isUtc: true,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
+                ),
+                const SizedBox(height: 16),
+                const SectionHeading(
+                  'Fotos da ocorrência',
+                  subtitle: 'Protegidas e salvas somente neste aparelho.',
+                ),
+                Wrap(
+                  spacing: 12,
+                  children: [
+                    TextButton.icon(
+                      onPressed: data.busy
+                          ? null
+                          : () => uiAction(
+                              context,
+                              () => app.operation(
+                                () => AttachmentStore(
+                                  app.repository,
+                                ).add(incident.id, ImageSource.camera),
+                              ),
+                            ),
+                      icon: const Icon(AppIcons.cameraAltOutlined),
+                      label: const Text('Tirar foto'),
+                    ),
+                    TextButton.icon(
+                      onPressed: data.busy
+                          ? null
+                          : () => uiAction(
+                              context,
+                              () => app.operation(
+                                () => AttachmentStore(
+                                  app.repository,
+                                ).add(incident.id, ImageSource.gallery),
+                              ),
+                            ),
+                      icon: const Icon(AppIcons.photoLibraryOutlined),
+                      label: const Text('Escolher foto'),
+                    ),
+                  ],
+                ),
+                FutureBuilder(
+                  future: AttachmentStore(app.repository).list(incident.id),
+                  builder: (context, snapshot) => Column(
                     children: [
-                      const SectionHeading(
-                        'Atualiza\u00e7\u00f5es de condi\u00e7\u00e3o',
-                      ),
                       if (snapshot.connectionState == ConnectionState.waiting)
                         const LinearProgressIndicator(
-                          semanticsLabel: 'Carregando atualiza\u00e7\u00f5es',
+                          semanticsLabel: 'Carregando fotos',
                         ),
                       if (snapshot.hasError)
                         const Text(
-                          'N\u00e3o foi poss\u00edvel carregar as atualiza\u00e7\u00f5es.',
+                          'N\u00e3o foi poss\u00edvel abrir as fotos neste aparelho.',
                         ),
-                      if (snapshot.hasData && updates.isEmpty)
-                        const Text(
-                          'Nenhuma atualiza\u00e7\u00e3o de condi\u00e7\u00e3o registrada.',
+                      if (snapshot.hasData && snapshot.data!.isEmpty)
+                        const Padding(
+                          padding: EdgeInsets.all(16),
+                          child: Text('Nenhuma foto adicionada.'),
                         ),
-                      for (final update in updates)
-                        ListTile(
-                          title: Text(
-                            outcomeLabel(update['condition'] as String),
-                          ),
-                          subtitle: Text(
-                            dateLabel(
-                              DateTime.fromMillisecondsSinceEpoch(
-                                update['createdAt'] as int,
-                                isUtc: true,
-                              ),
+                      for (final row in snapshot.data ?? [])
+                        _Photo(
+                          key: ValueKey(row['id']),
+                          row: row,
+                          repository: app.repository,
+                          onRemove: () => uiAction(
+                            context,
+                            () => app.operation(
+                              () => AttachmentStore(app.repository).remove(row),
                             ),
                           ),
                         ),
                     ],
-                  );
-                },
-              ),
-              const SizedBox(height: 16),
-              const SectionHeading(
-                'Fotos da ocorrência',
-                subtitle: 'Protegidas e salvas somente neste aparelho.',
-              ),
-              Wrap(
-                spacing: 12,
-                children: [
-                  TextButton.icon(
-                    onPressed: data.busy
-                        ? null
-                        : () => uiAction(
-                            context,
-                            () => app.operation(
-                              () => AttachmentStore(
-                                app.repository,
-                              ).add(incident.id, ImageSource.camera),
-                            ),
-                          ),
-                    icon: const Icon(AppIcons.cameraAltOutlined),
-                    label: const Text('Tirar foto'),
                   ),
-                  TextButton.icon(
-                    onPressed: data.busy
-                        ? null
-                        : () => uiAction(
-                            context,
-                            () => app.operation(
-                              () => AttachmentStore(
-                                app.repository,
-                              ).add(incident.id, ImageSource.gallery),
-                            ),
-                          ),
-                    icon: const Icon(AppIcons.photoLibraryOutlined),
-                    label: const Text('Escolher foto'),
+                ),
+                FutureBuilder(
+                  future: app.repository.store.db.query(
+                    'share_attempts',
+                    where: 'user_id=? AND incident_id=?',
+                    whereArgs: [app.repository.uid, incident.id],
                   ),
-                ],
-              ),
-              FutureBuilder(
-                future: AttachmentStore(app.repository).list(incident.id),
-                builder: (context, snapshot) => Column(
-                  children: [
-                    if (snapshot.connectionState == ConnectionState.waiting)
-                      const LinearProgressIndicator(
-                        semanticsLabel: 'Carregando fotos',
-                      ),
-                    if (snapshot.hasError)
+                  builder: (context, snapshot) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                       const Text(
-                        'N\u00e3o foi poss\u00edvel abrir as fotos neste aparelho.',
+                        'Tentativas de compartilhamento — sem confirmação de envio',
                       ),
-                    if (snapshot.hasData && snapshot.data!.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.all(16),
-                        child: Text('Nenhuma foto adicionada.'),
-                      ),
-                    for (final row in snapshot.data ?? [])
-                      _Photo(
-                        key: ValueKey(row['id']),
-                        row: row,
-                        repository: app.repository,
-                        onRemove: () => uiAction(
-                          context,
-                          () => app.operation(
-                            () => AttachmentStore(app.repository).remove(row),
-                          ),
+                      for (final row in snapshot.data ?? [])
+                        Text(
+                          '${channelLabel((jsonDecode(row['payload'] as String) as Map)['channel'])} • ${shareStateLabel((jsonDecode(row['payload'] as String) as Map)['status'])}',
                         ),
-                      ),
-                  ],
-                ),
-              ),
-              FutureBuilder(
-                future: app.repository.store.db.query(
-                  'share_attempts',
-                  where: 'user_id=? AND incident_id=?',
-                  whereArgs: [app.repository.uid, incident.id],
-                ),
-                builder: (context, snapshot) => Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Tentativas de compartilhamento — sem confirmação de envio',
-                    ),
-                    for (final row in snapshot.data ?? [])
-                      Text(
-                        '${channelLabel((jsonDecode(row['payload'] as String) as Map)['channel'])} • ${shareStateLabel((jsonDecode(row['payload'] as String) as Map)['status'])}',
-                      ),
-                  ],
-                ),
-              ),
-            ],
-            const SizedBox(height: 16),
-            OutlinedButton.icon(
-              onPressed: () => uiAction(context, () async {
-                await SharePlus.instance.share(
-                  ShareParams(
-                    text:
-                        '${incident?.label ?? 'Trajeto'}\nData: ${dateLabel(incident?.occurredAt ?? session!.startedAt)}\nSituação: ${outcomeLabel(incident?.outcome ?? session!.status)}\n${incident == null ? 'Posição: ${session!.position.label}' : 'Condição atual: ${outcomeLabel(incident.condition)}'}\n${location?.describe(DateTime.now().toUtc()) ?? 'Localização indisponível.'}\n${location?.mapUrl ?? ''}\n${incident?.notes ?? ''}',
-                    subject: 'ZELO — exportação de registro',
+                    ],
                   ),
-                );
-              }),
-              icon: const Icon(AppIcons.iosShare),
-              label: const Text('Exportar registro'),
-            ),
-            TextButton.icon(
-              onPressed: data.busy
-                  ? null
-                  : () async {
-                      if (await confirmAction(
-                            context,
-                            'Excluir registro?',
-                            'A exclusão local será imediata; a remoção na nuvem exige confirmação posterior. Fotos locais serão removidas. A ação não pode ser desfeita.',
-                          ) &&
-                          context.mounted) {
-                        if (await uiAction(
+                ),
+              ],
+              const SizedBox(height: 16),
+              OutlinedButton.icon(
+                onPressed: () => uiAction(context, () async {
+                  await SharePlus.instance.share(
+                    ShareParams(
+                      text:
+                          '${incident?.label ?? 'Trajeto'}\nData: ${dateLabel(incident?.occurredAt ?? session!.startedAt)}\nSituação: ${outcomeLabel(incident?.outcome ?? session!.status)}\n${incident == null ? 'Posição: ${session!.position.label}' : 'Condição atual: ${outcomeLabel(incident.condition)}'}\n${location?.describe(DateTime.now().toUtc()) ?? 'Localização indisponível.'}\n${location?.mapUrl ?? ''}\n${incident?.notes ?? ''}',
+                      subject: 'ZELO — exportação de registro',
+                    ),
+                  );
+                }),
+                icon: const Icon(AppIcons.iosShare),
+                label: const Text('Exportar registro'),
+              ),
+              TextButton.icon(
+                onPressed: data.busy
+                    ? null
+                    : () async {
+                        if (await confirmAction(
                               context,
-                              () => app.deleteRecord(widget.type, widget.id),
+                              'Excluir registro?',
+                              'A exclusão local será imediata; a remoção na nuvem exige confirmação posterior. Fotos locais serão removidas. A ação não pode ser desfeita.',
                             ) &&
                             context.mounted) {
-                          context.go('/historico');
+                          if (await uiAction(
+                                context,
+                                () => app.deleteRecord(widget.type, widget.id),
+                              ) &&
+                              context.mounted) {
+                            context.go('/historico');
+                          }
                         }
-                      }
-                    },
-              icon: const Icon(AppIcons.deleteOutline),
-              label: const Text('Excluir registro'),
-            ),
-          ],
+                      },
+                icon: const Icon(AppIcons.deleteOutline),
+                label: const Text('Excluir registro'),
+              ),
+            ],
+          ),
         ),
       );
     },

@@ -1,3 +1,4 @@
+import '../../domain/history_filter.dart';
 import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
@@ -13,41 +14,83 @@ class HistoryScreen extends StatefulWidget {
 
 class _HistoryScreenState extends State<HistoryScreen> {
   String filter = 'all';
+  String query = '';
+  DateTimeRange? period;
+  final search = TextEditingController();
+
+  @override
+  void dispose() {
+    search.dispose();
+    super.dispose();
+  }
+
+  void clearFilters() {
+    search.clear();
+    setState(() {
+      query = '';
+      period = null;
+      filter = 'all';
+    });
+  }
+
+  Future<void> selectPeriod() async {
+    final now = DateTime.now();
+    final chosen = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(now.year + 1, 12, 31),
+      initialDateRange: period,
+      helpText: 'Filtrar por per\u00edodo',
+      saveText: 'Aplicar',
+    );
+    if (chosen != null && mounted) setState(() => period = chosen);
+  }
+
   @override
   Widget build(BuildContext context) => AppView(
     builder: (context, data, app) {
       final entries =
           <
-              ({
-                String id,
-                String type,
-                String title,
-                String subtitle,
-                DateTime at,
-              })
-            >[
-              if (filter != 'incidents')
-                for (final session in data.sessions)
-                  (
-                    id: session.id,
-                    type: 'sessions',
-                    title: outcomeLabel(session.status),
-                    subtitle: session.local
-                        ? session.position.label
-                        : 'Sessão de outro aparelho',
-                    at: session.startedAt,
-                  ),
-              if (filter != 'sessions')
-                for (final incident in data.incidents)
-                  (
-                    id: incident.id,
-                    type: 'incidents',
-                    title: incident.label,
-                    subtitle:
-                        '${outcomeLabel(incident.outcome)} • ${outcomeLabel(incident.condition)}${incident.preserved ? ' • Preservado' : ''}',
-                    at: incident.occurredAt,
-                  ),
-            ]
+                ({
+                  String id,
+                  String type,
+                  String title,
+                  String subtitle,
+                  DateTime at,
+                })
+              >[
+                if (filter != 'incidents')
+                  for (final session in data.sessions)
+                    (
+                      id: session.id,
+                      type: 'sessions',
+                      title: outcomeLabel(session.status),
+                      subtitle: session.local
+                          ? session.position.label
+                          : 'Sessão de outro aparelho',
+                      at: session.startedAt,
+                    ),
+                if (filter != 'sessions')
+                  for (final incident in data.incidents)
+                    (
+                      id: incident.id,
+                      type: 'incidents',
+                      title: incident.label,
+                      subtitle:
+                          '${outcomeLabel(incident.outcome)} • ${outcomeLabel(incident.condition)}${incident.preserved ? ' • Preservado' : ''}',
+                      at: incident.occurredAt,
+                    ),
+              ]
+              .where(
+                (entry) => matchesHistoryFilter(
+                  at: entry.at,
+                  text:
+                      '${entry.title} ${entry.subtitle} ${dateLabel(entry.at)}',
+                  query: query,
+                  period: period,
+                ),
+              )
+              .toList()
             ..sort((a, b) => b.at.compareTo(a.at));
       return Scaffold(
         appBar: AppHeader(title: const Text('Histórico')),
@@ -65,6 +108,50 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         subtitle:
                             'Consulte trajetos, alertas e pedidos de ajuda.',
                       ),
+                      TextField(
+                        controller: search,
+                        onChanged: (value) => setState(() => query = value),
+                        decoration: InputDecoration(
+                          labelText: 'Buscar registros',
+                          hintText:
+                              'Trajeto, alerta, situa\u00e7\u00e3o ou data',
+                          prefixIcon: const Icon(Icons.search_rounded),
+                          suffixIcon: query.isEmpty
+                              ? null
+                              : IconButton(
+                                  tooltip: 'Limpar busca',
+                                  onPressed: () {
+                                    search.clear();
+                                    setState(() => query = '');
+                                  },
+                                  icon: const Icon(Icons.close_rounded),
+                                ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          OutlinedButton.icon(
+                            onPressed: selectPeriod,
+                            icon: const Icon(Icons.date_range_rounded),
+                            label: Text(
+                              period == null
+                                  ? 'Selecionar per\u00edodo'
+                                  : '${period!.start.day}/${period!.start.month}/${period!.start.year} a ${period!.end.day}/${period!.end.month}/${period!.end.year}',
+                            ),
+                          ),
+                          if (period != null ||
+                              query.isNotEmpty ||
+                              filter != 'all')
+                            TextButton(
+                              onPressed: clearFilters,
+                              child: const Text('Limpar filtros'),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
@@ -103,10 +190,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       title: 'Nenhum registro neste filtro.',
                       message:
                           'Seus trajetos e ocorr\u00eancias aparecer\u00e3o aqui. Consulte os detalhes sempre que precisar.',
-                      action: filter == 'all'
+                      action: filter == 'all' && query.isEmpty && period == null
                           ? null
                           : OutlinedButton(
-                              onPressed: () => setState(() => filter = 'all'),
+                              onPressed: clearFilters,
                               child: const Text('Mostrar todos os registros'),
                             ),
                     ),

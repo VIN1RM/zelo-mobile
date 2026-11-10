@@ -1,3 +1,4 @@
+import '../../../../shared/widgets/unsaved_changes_guard.dart';
 import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,6 +16,7 @@ class ProfileScreen extends ConsumerStatefulWidget {
 }
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  final _guard = GlobalKey<UnsavedChangesGuardState>();
   final name = TextEditingController();
   final password = TextEditingController();
   bool initialized = false;
@@ -38,134 +40,142 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         FirebaseAuth.instance,
         FirebaseFirestore.instance,
       );
-      return Scaffold(
-        appBar: AppHeader(title: const Text('Minha conta')),
-        body: OrganizedListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            StatusPanel(
-              title: 'E-mail verificado',
-              message: user?.email ?? 'Sua conta está conectada.',
-              icon: AppIcons.personOutlineRounded,
-              tone: AppTone.positive,
-            ),
-            const SizedBox(height: 16),
-            const SectionHeading('Como podemos chamar você?'),
-            TextField(
-              controller: name,
-              maxLength: 80,
-              enabled: !data.busy,
-              decoration: const InputDecoration(
-                labelText: 'Seu nome',
-                prefixIcon: Icon(AppIcons.personOutlineRounded),
+      return UnsavedChangesGuard(
+        key: _guard,
+        controllers: [name],
+        child: Scaffold(
+          appBar: AppHeader(title: const Text('Minha conta')),
+          body: OrganizedListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              StatusPanel(
+                title: 'E-mail verificado',
+                message: user?.email ?? 'Sua conta está conectada.',
+                icon: AppIcons.personOutlineRounded,
+                tone: AppTone.positive,
               ),
-            ),
-            FilledButton(
-              onPressed: data.busy
-                  ? null
-                  : () => uiAction(
-                      context,
-                      () => app.operation(() => service().rename(name.text)),
-                      success: 'Nome atualizado.',
-                    ),
-              child: LoadingLabel(loading: data.busy, label: 'Salvar nome'),
-            ),
-            TextButton(
-              onPressed: data.busy
-                  ? null
-                  : () async {
-                      if (await confirmAction(
-                            context,
-                            'Sair da conta?',
-                            'Você precisará entrar novamente. Dados locais continuam isolados por usuário.',
-                          ) &&
-                          context.mounted) {
-                        await uiAction(
+              const SizedBox(height: 16),
+              const SectionHeading('Como podemos chamar você?'),
+              TextField(
+                controller: name,
+                maxLength: 80,
+                enabled: !data.busy,
+                decoration: const InputDecoration(
+                  labelText: 'Seu nome',
+                  prefixIcon: Icon(AppIcons.personOutlineRounded),
+                ),
+              ),
+              FilledButton(
+                onPressed: data.busy
+                    ? null
+                    : () async {
+                        final saved = await uiAction(
                           context,
-                          () => app.operation(
-                            service().signOut,
-                            allowDuringDeletion: true,
-                          ),
+                          () =>
+                              app.operation(() => service().rename(name.text)),
+                          success: 'Nome atualizado.',
                         );
-                      }
-                    },
-              child: const Text('Sair da conta'),
-            ),
-            const SectionHeading(
-              'Excluir conta e dados',
-              subtitle:
-                  'Uma ação permanente. Leia as informações antes de continuar.',
-            ),
-            ExpansionTile(
-              tilePadding: EdgeInsets.zero,
-              childrenPadding: const EdgeInsets.only(top: 12),
-              leading: Icon(
-                AppIcons.deleteForeverOutlined,
-                color: AppTone.danger.foreground,
+                        if (saved) await _guard.currentState?.acceptChanges();
+                      },
+                child: LoadingLabel(loading: data.busy, label: 'Salvar nome'),
               ),
-              title: const Text('Revisar exclus\u00e3o da conta'),
-              subtitle: const Text(
-                'Abra para consultar os detalhes e confirmar sua senha.',
-              ),
-              children: [
-                const Text(
-                  'Exige internet, autenticação recente e proteção encerrada. Falhas deixam a operação pendente para nova tentativa. Um marcador técnico mínimo, sem nome, e-mail, contatos ou localização, permanece para impedir que aparelhos antigos recriem os dados. A senha é usada somente para reautenticação.',
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: password,
-                  enabled: !data.busy,
-                  obscureText: true,
-                  enableSuggestions: false,
-                  autocorrect: false,
-                  decoration: const InputDecoration(
-                    labelText: 'Senha para confirmar exclusão',
-                  ),
-                ),
-                TextButton.icon(
-                  onPressed: data.busy
-                      ? null
-                      : () async {
-                          if (password.text.isEmpty) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('Informe sua senha.'),
-                              ),
-                            );
-                            return;
-                          }
-                          if (await confirmAction(
-                                context,
-                                'Excluir definitivamente?',
-                                'Sua conta, registros remotos e arquivos locais serão removidos. Se houver falha, a operação ficará pendente para nova tentativa.',
-                              ) &&
-                              context.mounted) {
-                            await uiAction(
+              TextButton(
+                onPressed: data.busy
+                    ? null
+                    : () async {
+                        if (await confirmAction(
                               context,
-                              () => app.operation(
-                                () => service().delete(password.text),
-                                allowDuringDeletion: true,
-                              ),
-                            );
-                          }
-                        },
-                  icon: const Icon(AppIcons.deleteForeverOutlined),
-                  style: TextButton.styleFrom(
-                    foregroundColor: AppTone.danger.foreground,
-                  ),
-                  label: const Text('Excluir conta e dados'),
+                              'Sair da conta?',
+                              'Você precisará entrar novamente. Dados locais continuam isolados por usuário.',
+                            ) &&
+                            context.mounted) {
+                          await uiAction(
+                            context,
+                            () => app.operation(
+                              service().signOut,
+                              allowDuringDeletion: true,
+                            ),
+                          );
+                        }
+                      },
+                child: const Text('Sair da conta'),
+              ),
+              const SectionHeading(
+                'Excluir conta e dados',
+                subtitle:
+                    'Uma ação permanente. Leia as informações antes de continuar.',
+              ),
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(top: 12),
+                leading: Icon(
+                  AppIcons.deleteForeverOutlined,
+                  color: AppTone.danger.foregroundFor(context),
                 ),
-              ],
-            ),
-            FutureBuilder(
-              future: app.repository.preference('deleting'),
-              builder: (context, snapshot) => snapshot.data == null
-                  ? const SizedBox.shrink()
-                  : const Text(
-                      'Uma exclusão foi iniciada e ainda não foi concluída. Informe sua senha e tente novamente. Novas alterações e sincronização ficam bloqueadas até a conclusão.',
+                title: const Text('Revisar exclus\u00e3o da conta'),
+                subtitle: const Text(
+                  'Abra para consultar os detalhes e confirmar sua senha.',
+                ),
+                children: [
+                  const Text(
+                    'Exige internet, autenticação recente e proteção encerrada. Falhas deixam a operação pendente para nova tentativa. Um marcador técnico mínimo, sem nome, e-mail, contatos ou localização, permanece para impedir que aparelhos antigos recriem os dados. A senha é usada somente para reautenticação.',
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: password,
+                    enabled: !data.busy,
+                    obscureText: true,
+                    enableSuggestions: false,
+                    autocorrect: false,
+                    decoration: const InputDecoration(
+                      labelText: 'Senha para confirmar exclusão',
                     ),
-            ),
-          ],
+                  ),
+                  TextButton.icon(
+                    onPressed: data.busy
+                        ? null
+                        : () async {
+                            if (password.text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('Informe sua senha.'),
+                                ),
+                              );
+                              return;
+                            }
+                            if (await confirmAction(
+                                  context,
+                                  'Excluir definitivamente?',
+                                  'Sua conta, registros remotos e arquivos locais serão removidos. Se houver falha, a operação ficará pendente para nova tentativa.',
+                                ) &&
+                                context.mounted) {
+                              await uiAction(
+                                context,
+                                () => app.operation(
+                                  () => service().delete(password.text),
+                                  allowDuringDeletion: true,
+                                ),
+                              );
+                            }
+                          },
+                    icon: const Icon(AppIcons.deleteForeverOutlined),
+                    style: TextButton.styleFrom(
+                      foregroundColor: AppTone.danger.foregroundFor(context),
+                    ),
+                    label: const Text('Excluir conta e dados'),
+                  ),
+                ],
+              ),
+              FutureBuilder(
+                future: app.repository.preference('deleting'),
+                builder: (context, snapshot) => snapshot.data == null
+                    ? const SizedBox.shrink()
+                    : const Text(
+                        'Uma exclusão foi iniciada e ainda não foi concluída. Informe sua senha e tente novamente. Novas alterações e sincronização ficam bloqueadas até a conclusão.',
+                      ),
+              ),
+            ],
+          ),
         ),
       );
     },

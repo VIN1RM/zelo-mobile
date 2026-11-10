@@ -1,3 +1,7 @@
+import 'package:zelo_mobile/features/settings/presentation/screens/reminders_screen.dart';
+import 'package:zelo_mobile/features/settings/data/reminder_gateway.dart';
+import 'package:zelo_mobile/features/settings/domain/reminder_settings.dart';
+import 'package:zelo_mobile/features/onboarding/presentation/screens/preparation_screen.dart';
 import 'package:flutter/foundation.dart';
 import 'package:zelo_mobile/features/settings/presentation/screens/licenses_screen.dart';
 import 'package:zelo_mobile/features/profile/presentation/screens/profile_screen.dart';
@@ -34,6 +38,20 @@ import '../support/fake_auth_repository.dart';
 import 'package:zelo_mobile/features/device_resources/data/device_resources_gateway.dart';
 import 'package:zelo_mobile/features/device_resources/domain/acceleration_reading.dart';
 import 'package:zelo_mobile/features/device_resources/presentation/screens/device_resources_screen.dart';
+
+class _ReminderPreviewGateway extends ReminderGateway {
+  @override
+  Future<ReminderSettings> load(String uid) async => const ReminderSettings();
+}
+
+class _ReminderPreview extends ConsumerWidget {
+  const _ReminderPreview();
+  @override
+  Widget build(BuildContext context, WidgetRef ref) =>
+      ref.watch(authUserProvider).hasValue
+      ? const RemindersScreen()
+      : const SizedBox();
+}
 
 class _ResourcePreview extends DeviceResourcesGateway {
   @override
@@ -109,6 +127,8 @@ void main() {
   tearDown(() => store.close());
 
   const screens = <String, Widget>{
+    'preparacao': PreparationScreen(),
+    'lembretes': _ReminderPreview(),
     'licencas': LicensesScreen(loader: _previewLicenses),
     'conta': ProfileScreen(),
     'diagnostico': DeviceDiagnosticsScreen(),
@@ -135,10 +155,12 @@ void main() {
       const Size(390, 844),
       const Size(320, 700),
       const Size(640, 360),
+      const Size(391, 844),
     ]) {
       final enlarged = size.width == 320;
+      final dark = size.width == 391;
       testWidgets(
-        '${screen.key}: Portuguese labels and ${enlarged ? 'enlarged text on narrow screen' : 'phone layout'} ${size.width}x${size.height}',
+        '${screen.key}: Portuguese labels and ${enlarged ? 'enlarged text on narrow screen' : 'phone layout'} ${size.width}x${size.height} ${dark ? 'dark' : 'light'}',
         (tester) async {
           tester.view.physicalSize = size;
           tester.view.devicePixelRatio = 1;
@@ -180,6 +202,9 @@ void main() {
           await tester.pumpWidget(
             ProviderScope(
               overrides: [
+                reminderGatewayProvider.overrideWithValue(
+                  _ReminderPreviewGateway(),
+                ),
                 deviceDiagnosticsProvider.overrideWith(
                   (ref) async => const DeviceDiagnostics(
                     androidApi: 35,
@@ -198,7 +223,7 @@ void main() {
                 authRepositoryProvider.overrideWithValue(auth),
               ],
               child: MaterialApp(
-                theme: AppTheme.light,
+                theme: dark ? AppTheme.dark : AppTheme.light,
                 locale: const Locale('pt', 'BR'),
                 supportedLocales: const [Locale('pt', 'BR')],
                 localizationsDelegates: GlobalMaterialLocalizations.delegates,
@@ -258,7 +283,7 @@ void main() {
             );
             await tester.pumpAndSettle();
           }
-          if (size.width == 390 &&
+          if ((size.width == 390 || dark) &&
               const bool.fromEnvironment('ZELO_UI_PREVIEW')) {
             await tester.runAsync(() async {
               final boundary = tester.renderObject<RenderRepaintBoundary>(
@@ -270,7 +295,7 @@ void main() {
               );
               await Directory('build/ui-preview').create(recursive: true);
               await File(
-                'build/ui-preview/${screen.key}.png',
+                'build/ui-preview/${screen.key}${dark ? '-dark' : ''}.png',
               ).writeAsBytes(bytes!.buffer.asUint8List());
               rendered.dispose();
             });

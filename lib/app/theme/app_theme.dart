@@ -3,6 +3,87 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 abstract final class AppTheme {
+  static ThemeData get dark {
+    final base = light;
+    final scheme =
+        ColorScheme.fromSeed(
+          seedColor: AppColors.teal,
+          brightness: Brightness.dark,
+        ).copyWith(
+          surface: const Color(0xFF172B3A),
+          primary: const Color(0xFF9AD5E1),
+        );
+    final text = base.textTheme.apply(
+      bodyColor: scheme.onSurface,
+      displayColor: scheme.onSurface,
+    );
+    final shape = RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(22),
+      side: BorderSide(color: scheme.outlineVariant),
+    );
+    return base.copyWith(
+      brightness: Brightness.dark,
+      colorScheme: scheme,
+      scaffoldBackgroundColor: const Color(0xFF0E1C28),
+      textTheme: text,
+      iconTheme: IconThemeData(color: scheme.primary),
+      chipTheme: base.chipTheme.copyWith(
+        backgroundColor: scheme.surface,
+        selectedColor: scheme.secondaryContainer,
+        secondarySelectedColor: scheme.secondaryContainer,
+        disabledColor: scheme.surfaceContainerHighest,
+        labelStyle: text.labelLarge?.copyWith(color: scheme.onSurface),
+        secondaryLabelStyle: text.labelLarge?.copyWith(color: scheme.onSurface),
+        checkmarkColor: scheme.onSecondaryContainer,
+        side: BorderSide(color: scheme.outlineVariant),
+      ),
+      appBarTheme: base.appBarTheme.copyWith(
+        backgroundColor: const Color(0xFF0E1C28),
+        foregroundColor: scheme.onSurface,
+        titleTextStyle: text.titleLarge,
+      ),
+      cardTheme: CardThemeData(
+        color: scheme.surface,
+        elevation: 0,
+        shape: shape,
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: scheme.surface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      ),
+      inputDecorationTheme: base.inputDecorationTheme.copyWith(
+        fillColor: scheme.surface,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: scheme.outlineVariant),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: scheme.primary, width: 2),
+        ),
+      ),
+      listTileTheme: ListTileThemeData(
+        titleTextStyle: text.titleMedium,
+        subtitleTextStyle: text.bodyMedium,
+        iconColor: scheme.primary,
+      ),
+      navigationBarTheme: base.navigationBarTheme.copyWith(
+        backgroundColor: scheme.surface,
+        indicatorColor: scheme.secondaryContainer,
+      ),
+      dividerTheme: base.dividerTheme.copyWith(color: scheme.outlineVariant),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: base.outlinedButtonTheme.style?.copyWith(
+          side: WidgetStatePropertyAll(BorderSide(color: scheme.outline)),
+        ),
+      ),
+      snackBarTheme: base.snackBarTheme.copyWith(
+        backgroundColor: scheme.inverseSurface,
+        contentTextStyle: text.bodyMedium?.copyWith(color: scheme.onInverseSurface),
+      ),
+    );
+  }
+
   static ThemeData get light {
     final colorScheme =
         ColorScheme.fromSeed(

@@ -165,8 +165,8 @@ class _DiagnosticRow extends StatelessWidget {
           ? Icons.check_circle_outline_rounded
           : Icons.info_outline_rounded,
       color: available
-          ? AppTone.positive.foreground
-          : AppTone.warning.foreground,
+          ? AppTone.positive.foregroundFor(context)
+          : AppTone.warning.foregroundFor(context),
     ),
     title: Text(title),
     subtitle: Text(value),

@@ -29,6 +29,12 @@ class SettingsScreen extends StatelessWidget {
           const SizedBox(height: 20),
           const SectionHeading('Pronto para sair'),
           AppActionTile(
+            icon: Icons.notifications_active_outlined,
+            title: 'Lembretes de proteção',
+            subtitle: 'Escolha dias e horários para lembrar de iniciar',
+            onTap: () => context.push('/lembretes'),
+          ),
+          AppActionTile(
             icon: AppIcons.sensorsRounded,
             title: 'Recursos do aparelho',
             subtitle:

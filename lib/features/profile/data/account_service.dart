@@ -9,6 +9,7 @@ import '../../../core/domain/app_failure.dart';
 import '../../auth/domain/auth_validation.dart';
 import '../../history/data/attachment_store.dart';
 import '../../monitoring/data/monitoring_gateway.dart';
+import '../../settings/data/reminder_gateway.dart';
 
 class AccountService {
   AccountService(this.repository, this.auth, this.firestore);
@@ -43,6 +44,7 @@ class AccountService {
         'Encerre a proteção e resolva o alerta antes de sair.',
       );
     }
+    await ReminderGateway().activate(null);
     await auth.signOut();
   }
 
@@ -75,6 +77,7 @@ class AccountService {
       EmailAuthProvider.credential(email: current.email!, password: password),
     );
     await repository.setPreference('deleting', 'true');
+    await ReminderGateway().remove(repository.uid);
     final fence = firestore.collection('account_deletions').doc(repository.uid);
     await firestore.runTransaction((tx) async {
       final snapshot = await tx.get(fence);
