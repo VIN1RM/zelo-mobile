@@ -1,4 +1,6 @@
 import 'package:zelo_mobile/features/emergency/domain/incident.dart';
+import 'dart:async';
+import 'package:zelo_mobile/features/contacts/domain/emergency_contact.dart';
 import 'package:zelo_mobile/core/application/app_controller.dart';
 import '../../support/fake_app_controller.dart';
 import 'package:flutter/widgets.dart';
@@ -28,7 +30,66 @@ class _PendingHelpController extends FakeAppController {
   );
 }
 
+class _RestoringController extends FakeAppController {
+  _RestoringController(this.restored);
+  final Future<AppSnapshot> restored;
+  @override
+  Future<AppSnapshot> build() => restored;
+}
+
 void main() {
+  testWidgets('restored contacts arrive before onboarding is considered', (
+    tester,
+  ) async {
+    final auth = FakeAuthRepository(user: verifiedUser);
+    addTearDown(auth.dispose);
+    final ready = Completer<AppSnapshot>();
+    final container = ProviderContainer(
+      overrides: [
+        authRepositoryProvider.overrideWithValue(auth),
+        appControllerProvider.overrideWith(
+          () => _RestoringController(ready.future),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(container: container, child: const ZeloApp()),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+    expect(
+      container.read(appRouterProvider).routeInformationProvider.value.uri.path,
+      '/inicio',
+    );
+    expect(find.text('Carregando sua conta e contatos…'), findsOneWidget);
+    ready.complete(
+      const AppSnapshot(
+        remoteDataLoaded: true,
+        contacts: [
+          EmergencyContact(
+            id: 'a',
+            name: 'Ana',
+            priority: 1,
+            phone: '+5511999999999',
+          ),
+        ],
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      container.read(appRouterProvider).routeInformationProvider.value.uri.path,
+      '/inicio',
+    );
+    await tester.scrollUntilVisible(
+      find.text('1 de 3 contatos cadastrados'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
+    expect(find.text('1 de 3 contatos cadastrados'), findsOneWidget);
+    await tester.pumpWidget(const SizedBox());
+  });
+
   testWidgets('login keeps home open when an old request remains unresolved', (
     tester,
   ) async {

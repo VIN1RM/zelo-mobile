@@ -79,7 +79,11 @@ class _SafetyCoordinatorState extends ConsumerState<SafetyCoordinator>
             if (path != target) router.go(target);
           } else if (path.startsWith('/alerta/')) {
             router.go('/inicio');
-          } else if (!data.prepared && !_prompted && path == '/inicio') {
+          } else if (data.remoteDataLoaded &&
+              data.contacts.isEmpty &&
+              !data.prepared &&
+              !_prompted &&
+              path == '/inicio') {
             _prompted = true;
             router.go('/preparar');
           }

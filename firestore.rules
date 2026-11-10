@@ -23,9 +23,20 @@ service cloud.firestore {
         && value.longitude is number && value.longitude >= -180 && value.longitude <= 180
         && value.accuracy is number && value.accuracy >= 0 && value.capturedAt is int && value.capturedAt >= 0);
     }
-    function contact() {
+    function photoPath(uid,id,path) {
+      return path == null || (path is string && path.size() <= 512
+        && path.split('/')[0] == 'users'
+        && path.split('/')[1] == uid && path.split('/')[2] == 'contact_photos'
+        && path.split('/')[3] == id
+        && ((path.split('/').size() == 6 && path.split('/')[4] == 'versions'
+          && path.split('/')[5].matches('^[a-f0-9-]{36}$'))
+          || (path.split('/').size() == 5 && path.split('/')[4].matches('^[a-f0-9-]{36}[.]png$'))));
+    }
+    function contact(uid) {
       let value=request.resource.data.data;
-      return value.keys().hasOnly(['id','name','priority','phone','email'])
+      return value.keys().hasOnly(['id','name','priority','phone','email','photoPath'])
+        && photoPath(uid,value.id,value.get('photoPath',null))
+        && (!request.resource.data.deleted || value.get('photoPath',null) == null)
         && value.name is string && value.name.size() >= 2 && value.name.size() <= 80
         && value.priority in [1,2,3]
         && optionalText(value.phone,16) && optionalText(value.email,254)
@@ -83,11 +94,31 @@ service cloud.firestore {
         && request.resource.data.data.name is string && request.resource.data.data.name.size()>=2 && request.resource.data.data.name.size()<=80
         && request.resource.data.data.email==request.auth.token.email;
       allow delete: if owner(uid) && recent();
+      match /contact_photos/{contactId} {
+        allow read, delete: if owner(uid);
+        allow create, update: if writable(uid) && contactId.matches('^[A-Za-z0-9_-]{1,128}$')
+          && request.resource.data.keys().hasAll(['contactId','updatedAt'])
+          && request.resource.data.keys().hasOnly(['contactId','updatedAt'])
+          && request.resource.data.contactId == contactId
+          && request.resource.data.updatedAt is int && request.resource.data.updatedAt >= 0;
+        match /versions/{photoId} {
+          allow read, delete: if owner(uid);
+          allow create, update: if writable(uid) && photoId.matches('^[a-f0-9-]{36}$')
+            && existsAfter(/databases/$(database)/documents/users/$(uid)/contact_photos/$(contactId))
+            && request.resource.data.keys().hasAll(['contactId','bytes','contentType','updatedAt'])
+            && request.resource.data.keys().hasOnly(['contactId','bytes','contentType','updatedAt'])
+            && request.resource.data.contactId == contactId
+            && request.resource.data.contentType == 'image/png'
+            && request.resource.data.bytes is bytes && request.resource.data.bytes.size() > 0
+            && request.resource.data.bytes.size() <= 65536
+            && request.resource.data.updatedAt is int && request.resource.data.updatedAt >= 0;
+        }
+      }
       match /emergency_contacts/{slot} {
         allow read: if owner(uid);
-        allow create: if writable(uid) && slot in ['1','2','3'] && envelope(uid) && contact()
+        allow create: if writable(uid) && slot in ['1','2','3'] && envelope(uid) && contact(uid)
           && distinctContact(uid,slot,'1') && distinctContact(uid,slot,'2') && distinctContact(uid,slot,'3');
-        allow update: if writable(uid) && slot in ['1','2','3'] && envelope(uid) && contact()
+        allow update: if writable(uid) && slot in ['1','2','3'] && envelope(uid) && contact(uid)
           && (nextRevision() || (resource.data.deleted && resource.data.id!=request.resource.data.id && request.resource.data.revision>0))
           && distinctContact(uid,slot,'1') && distinctContact(uid,slot,'2') && distinctContact(uid,slot,'3');
         allow delete: if owner(uid);

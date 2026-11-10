@@ -22,11 +22,12 @@ class LocalStore {
     final db = await openDatabase(
       '${directory.path}/zelo.db',
       password: password,
-      version: 1,
+      version: 3,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
       onCreate: createSchema,
+      onUpgrade: upgradeSchema,
     );
     return LocalStore(db);
   }
@@ -81,6 +82,35 @@ class LocalStore {
     await db.execute(
       'CREATE TABLE diagnostics (user_id TEXT NOT NULL, code TEXT NOT NULL, created_at INTEGER NOT NULL)',
     );
+    await createContactPhotos(db);
+  }
+
+  static Future<void> createContactPhotos(Database db) =>
+      db.execute('''CREATE TABLE contact_photos (
+    user_id TEXT NOT NULL, contact_id TEXT NOT NULL, storage_path TEXT NOT NULL,
+    bytes BLOB, uploaded INTEGER NOT NULL DEFAULT 0 CHECK(uploaded IN (0,1)), created_at INTEGER NOT NULL,
+    PRIMARY KEY(user_id,storage_path)
+  )''');
+
+  static Future<void> upgradeSchema(
+    Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
+    if (oldVersion < 2 && newVersion >= 2) await createContactPhotos(db);
+    if (oldVersion < 3 && newVersion >= 3) {
+      await db.update('contact_photos', {
+        'uploaded': 0,
+      }, where: 'bytes IS NOT NULL');
+      await db.execute(
+        '''INSERT OR IGNORE INTO outbox
+        (user_id,entity_type,entity_id,revision,status,attempts,next_attempt_at)
+        SELECT r.user_id,r.entity_type,r.id,r.revision,'PENDING',0,0
+        FROM records r JOIN contact_photos p ON p.user_id=r.user_id
+          AND p.storage_path=json_extract(r.payload,'\$.photoPath')
+        WHERE r.entity_type='contacts' AND r.is_deleted=0 AND p.bytes IS NOT NULL''',
+      );
+    }
   }
 
   static Map<String, dynamic> decode(Map<String, Object?> row) =>

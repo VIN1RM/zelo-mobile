@@ -1,3 +1,4 @@
+import '../../../contacts/presentation/widgets/contact_avatar.dart';
 import '../../../../core/formatting/phone_format.dart';
 import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
@@ -214,7 +215,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                     horizontal: 16,
                     vertical: 8,
                   ),
-                  leading: const Icon(AppIcons.personOutlineRounded),
+                  leading: ContactAvatar(contact: person, radius: 20),
                   title: Text(person.name),
                   subtitle: Text(
                     person.id == data.contacts.first.id

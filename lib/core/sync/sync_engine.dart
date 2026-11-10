@@ -8,22 +8,30 @@ import '../database/local_store.dart';
 import '../domain/app_failure.dart';
 import 'json_equality.dart';
 import '../../features/contacts/domain/emergency_contact.dart';
+import '../../features/contacts/data/contact_photo_store.dart';
 
 class SyncReport {
   const SyncReport({
     this.sent = 0,
     this.conflicts = 0,
     this.message = 'Sincronização concluída.',
+    this.remoteDataLoaded = false,
   });
   final int sent;
   final int conflicts;
   final String message;
+  final bool remoteDataLoaded;
 }
 
 class SyncEngine {
-  SyncEngine(this.repository, this.firestore);
+  SyncEngine(this.repository, this.firestore, {ContactPhotoCloud? photoCloud})
+    : photos = ContactPhotoStore(
+        repository,
+        cloud: photoCloud ?? FirestoreContactPhotoCloud(firestore: firestore),
+      );
   final ZeloRepository repository;
   final FirebaseFirestore firestore;
+  final ContactPhotoStore photos;
   bool _running = false;
 
   Future<T> _transaction<T>(Future<T> Function(Transaction) action) async {
@@ -56,6 +64,7 @@ class SyncEngine {
         chosen[slot] = row;
       }
     }
+    await photos.prepare(chosen.values);
     await _transaction<void>((transaction) async {
       final snapshots = <int, DocumentSnapshot<Map<String, dynamic>>>{};
       for (final slot in chosen.keys) {
@@ -148,6 +157,7 @@ class SyncEngine {
     }
     _running = true;
     var sent = 0;
+    var pulled = false;
     try {
       if (await repository.preference('deleting') != null) {
         return const SyncReport(
@@ -306,6 +316,38 @@ class SyncEngine {
       }
       if (pullRemote && await repository.preference('deleting') == null) {
         await pull();
+        pulled = true;
+      }
+      final photoRows = await repository.store.db.query(
+        'contact_photos',
+        columns: ['storage_path'],
+        where: 'user_id=?',
+        whereArgs: [repository.uid],
+        limit: 1,
+      );
+      if (photoRows.isNotEmpty &&
+          await repository.preference('deleting') == null) {
+        try {
+          final remoteContacts = await firestore
+              .collection('users')
+              .doc(repository.uid)
+              .collection('emergency_contacts')
+              .get(const GetOptions(source: Source.server));
+          await photos.cleanup(
+            remoteContacts.docs
+                .where((doc) => doc.data()['deleted'] != true)
+                .map((doc) => (doc.data()['data'] as Map)['photoPath'])
+                .whereType<String>()
+                .toSet(),
+          );
+        } catch (_) {
+          return SyncReport(
+            sent: sent,
+            remoteDataLoaded: pulled,
+            message:
+                'Dados sincronizados. A limpeza de fotos antigas será tentada novamente.',
+          );
+        }
       }
       final conflicts = await repository.store.db.query(
         'outbox',
@@ -315,6 +357,7 @@ class SyncEngine {
       return SyncReport(
         sent: sent,
         conflicts: conflicts.length,
+        remoteDataLoaded: pulled,
         message: conflicts.isEmpty
             ? 'Sincronização confirmada pelo servidor.'
             : 'Há conflitos ou falhas de autorização. Revise as pendências nos ajustes.',
@@ -454,7 +497,9 @@ class SyncEngine {
           .orderBy(FieldPath.documentId)
           .limit(100);
       if (last != null) query = query.startAfterDocument(last);
-      final page = await query.get(const GetOptions(source: Source.server));
+      final page = await query
+          .get(const GetOptions(source: Source.server))
+          .timeout(const Duration(seconds: 12));
       for (final doc in page.docs) {
         await accept(doc);
       }
@@ -465,7 +510,9 @@ class SyncEngine {
 
   Future<void> pull() async {
     final user = firestore.collection('users').doc(repository.uid);
-    final profile = await user.get(const GetOptions(source: Source.server));
+    final profile = await user
+        .get(const GetOptions(source: Source.server))
+        .timeout(const Duration(seconds: 12));
     if (profile.data() != null) await _accept('profiles', profile.data()!);
     await _pullContacts(user.collection('emergency_contacts'));
     await _pages(
@@ -522,9 +569,9 @@ class SyncEngine {
     CollectionReference<Map<String, dynamic>> collection, {
     bool force = false,
   }) async {
-    final remote = await collection.get(
-      const GetOptions(source: Source.server),
-    );
+    final remote = await collection
+        .get(const GetOptions(source: Source.server))
+        .timeout(const Duration(seconds: 12));
     final pending = await repository.store.db.query(
       'outbox',
       where: "user_id=? AND entity_type='contacts'",

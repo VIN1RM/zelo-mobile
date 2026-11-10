@@ -7,6 +7,7 @@ class EmergencyContact {
     required this.priority,
     this.phone,
     this.email,
+    this.photoPath,
     this.revision = 0,
   });
   final String id;
@@ -14,6 +15,7 @@ class EmergencyContact {
   final int priority;
   final String? phone;
   final String? email;
+  final String? photoPath;
   final int revision;
 
   static String? nameError(String value) =>
@@ -62,6 +64,7 @@ class EmergencyContact {
     'priority': priority,
     'phone': phone,
     'email': email,
+    if (photoPath != null) 'photoPath': photoPath,
   };
   factory EmergencyContact.fromJson(Map<String, dynamic> json) =>
       EmergencyContact(
@@ -70,6 +73,7 @@ class EmergencyContact {
         priority: json['priority'] as int,
         phone: json['phone'] as String?,
         email: json['email'] as String?,
+        photoPath: json['photoPath'] as String?,
         revision: json['revision'] as int? ?? 0,
       );
 }

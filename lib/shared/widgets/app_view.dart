@@ -26,9 +26,11 @@ class AppView extends ConsumerWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                CircularProgressIndicator(semanticsLabel: 'Abrindo seus dados'),
+                CircularProgressIndicator(
+                  semanticsLabel: 'Carregando sua conta e contatos',
+                ),
                 SizedBox(height: 20),
-                Text('Abrindo seus dados com segurança…'),
+                Text('Carregando sua conta e contatos…'),
               ],
             ),
           ),

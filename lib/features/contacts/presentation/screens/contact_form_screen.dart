@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+import '../widgets/contact_photo_field.dart';
 import '../../../../shared/widgets/unsaved_changes_guard.dart';
 import '../../../../core/formatting/phone_format.dart';
 import '../../../../shared/widgets/app_header.dart';
@@ -19,6 +21,11 @@ class _ContactFormScreenState extends State<ContactFormScreen> {
   final name = TextEditingController();
   final phone = TextEditingController();
   final email = TextEditingController();
+  final photo = TextEditingController();
+  Uint8List? photoBytes;
+  String? originalPhotoPath;
+  bool photoRemoved = false;
+  bool photoBusy = false;
   bool initialized = false;
   int? expectedRevision;
   final formKey = GlobalKey<FormState>();
@@ -28,6 +35,7 @@ class _ContactFormScreenState extends State<ContactFormScreen> {
     name.dispose();
     phone.dispose();
     email.dispose();
+    photo.dispose();
     super.dispose();
   }
 
@@ -42,11 +50,13 @@ class _ContactFormScreenState extends State<ContactFormScreen> {
         phone.text = formatPhone(contact?.phone);
         email.text = contact?.email ?? '';
         expectedRevision = contact?.revision;
+        originalPhotoPath = contact?.photoPath;
+        photo.text = originalPhotoPath ?? '';
         initialized = true;
       }
       return UnsavedChangesGuard(
         key: _guard,
-        controllers: [name, phone, email],
+        controllers: [name, phone, email, photo],
         child: Scaffold(
           appBar: AppHeader(
             title: Text(widget.id == null ? 'Novo contato' : 'Editar contato'),
@@ -71,12 +81,35 @@ class _ContactFormScreenState extends State<ContactFormScreen> {
                       subtitle:
                           'Informe um número de WhatsApp ou e-mail para preparar seus pedidos de ajuda.',
                     ),
+                    ContactPhotoField(
+                      contact: EmergencyContact(
+                        id: widget.id ?? '',
+                        name: name.text.isEmpty ? 'Contato' : name.text,
+                        priority: 1,
+                        photoPath: photoRemoved ? null : originalPhotoPath,
+                      ),
+                      preview: photoBytes,
+                      busy: data.busy,
+                      onBusyChanged: (value) =>
+                          setState(() => photoBusy = value),
+                      onChanged: (bytes) {
+                        setState(() {
+                          photoBytes = bytes;
+                          photoRemoved = bytes == null;
+                        });
+                        photo.text = bytes == null
+                            ? ''
+                            : 'local:${DateTime.now().microsecondsSinceEpoch}';
+                      },
+                    ),
+                    const SizedBox(height: 20),
                     TextFormField(
+                      onChanged: (_) => setState(() {}),
                       controller: name,
                       validator: (value) =>
                           EmergencyContact.nameError(value ?? ''),
                       textInputAction: TextInputAction.next,
-                      enabled: !data.busy,
+                      enabled: !data.busy && !photoBusy,
                       textCapitalization: TextCapitalization.words,
                       maxLength: 80,
                       decoration: const InputDecoration(
@@ -102,7 +135,7 @@ class _ContactFormScreenState extends State<ContactFormScreen> {
                           return error.message;
                         }
                       },
-                      enabled: !data.busy,
+                      enabled: !data.busy && !photoBusy,
                       keyboardType: TextInputType.phone,
                       decoration: const InputDecoration(
                         labelText: 'WhatsApp',
@@ -120,7 +153,7 @@ class _ContactFormScreenState extends State<ContactFormScreen> {
                         (value ?? '').trim().isEmpty ? null : value!.trim(),
                       ),
                       textInputAction: TextInputAction.done,
-                      enabled: !data.busy,
+                      enabled: !data.busy && !photoBusy,
                       keyboardType: TextInputType.emailAddress,
                       autocorrect: false,
                       decoration: const InputDecoration(
@@ -136,8 +169,8 @@ class _ContactFormScreenState extends State<ContactFormScreen> {
                     const SizedBox(height: 24),
                     SaveChangesButton(
                       guard: _guard,
-                      busy: data.busy,
-                      onPressed: data.busy
+                      busy: data.busy || photoBusy,
+                      onPressed: data.busy || photoBusy
                           ? null
                           : () async {
                               setState(() => submitted = true);
@@ -154,6 +187,8 @@ class _ContactFormScreenState extends State<ContactFormScreen> {
                                     name: name.text,
                                     phone: phone.text,
                                     email: email.text,
+                                    photoBytes: photoBytes,
+                                    removePhoto: photoRemoved,
                                   ),
                                 ),
                               );

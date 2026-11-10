@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:sqflite_sqlcipher/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
 import '../../features/contacts/domain/emergency_contact.dart';
+import '../../features/contacts/domain/contact_photo.dart';
 import '../../features/emergency/domain/incident.dart';
 import '../../features/monitoring/domain/monitoring_session.dart';
 import '../database/local_store.dart';
@@ -62,6 +64,16 @@ class ZeloRepository {
       data = Map<String, dynamic>.from(data)..remove('notes');
       if (data.containsKey('location')) data['location'] = null;
       if (type == 'contacts') {
+        final photoPath = data.remove('photoPath');
+        if (photoPath is String && ContactPhoto.validPath(uid, id, photoPath)) {
+          await tx.insert('contact_photos', {
+            'user_id': uid,
+            'contact_id': id,
+            'storage_path': photoPath,
+            'uploaded': 1,
+            'created_at': now,
+          }, conflictAlgorithm: ConflictAlgorithm.ignore);
+        }
         data.addAll({
           'name': 'Registro excluído',
           'phone': null,
@@ -137,7 +149,13 @@ class ZeloRepository {
     required String name,
     required String phone,
     required String email,
+    Uint8List? photoBytes,
+    bool removePhoto = false,
   }) async {
+    if (photoBytes != null &&
+        (removePhoto || !ContactPhoto.validBytes(photoBytes))) {
+      throw const AppFailure('Escolha uma miniatura PNG de até 64 KB.');
+    }
     final normalizedPhone = EmergencyContact.normalizePhone(phone);
     final normalizedEmail = email.trim().isEmpty
         ? null
@@ -176,15 +194,43 @@ class ZeloRepository {
             2,
             3,
           ].firstWhere((slot) => !all.any((row) => row['slot'] == slot));
+      final contactId = id ?? uuid.v4();
+      final oldPhoto = existing == null
+          ? null
+          : LocalStore.decode(existing)['photoPath'] as String?;
+      var photoPath = removePhoto ? null : oldPhoto;
+      if (photoBytes != null) {
+        photoPath = ContactPhoto.path(uid, contactId, uuid.v4());
+        await tx.insert('contact_photos', {
+          'user_id': uid,
+          'contact_id': contactId,
+          'storage_path': photoPath,
+          'bytes': photoBytes,
+          'uploaded': 0,
+          'created_at': now,
+        });
+      }
+      if (oldPhoto != null &&
+          oldPhoto != photoPath &&
+          ContactPhoto.validPath(uid, contactId, oldPhoto)) {
+        await tx.insert('contact_photos', {
+          'user_id': uid,
+          'contact_id': contactId,
+          'storage_path': oldPhoto,
+          'uploaded': 1,
+          'created_at': now,
+        }, conflictAlgorithm: ConflictAlgorithm.ignore);
+      }
       await put(
         tx,
         'contacts',
         EmergencyContact(
-          id: id ?? uuid.v4(),
+          id: contactId,
           name: name.trim(),
           priority: existing?['priority'] as int? ?? all.length + 1,
           phone: normalizedPhone,
           email: normalizedEmail,
+          photoPath: photoPath,
         ).toJson(),
         slot: slot,
       );

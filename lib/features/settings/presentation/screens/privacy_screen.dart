@@ -20,13 +20,13 @@ class PrivacyScreen extends StatelessWidget {
           const SizedBox(height: 16),
           const SectionHeading('Conta e sincronização'),
           const Text(
-            'Nome e e-mail são tratados pelo Firebase Authentication para acesso à conta. Contatos, sessões e ocorrências são salvos no banco protegido do aparelho; metadados são sincronizados com o projeto Firebase do ZELO quando há acesso ao servidor.',
+            'Nome e e-mail são tratados pelo Firebase Authentication para acesso à conta. Contatos, sessões e ocorrências ficam no banco protegido do aparelho; metadados são sincronizados com o Firebase. Fotos opcionais dos contatos são reduzidas a miniaturas de até 64 KB e salvas em documentos privados do Firestore, com cache local protegido.',
           ),
           const SizedBox(height: 16),
           const StatusPanel(
             title: 'Você controla o compartilhamento',
             message:
-                'Não gravamos rotas contínuas nem amostras dos sensores. A localização é pontual. Fotos e observações ficam somente no aparelho. Você decide quando exportar ou compartilhar.',
+                'Não gravamos rotas contínuas nem amostras dos sensores. A localização é pontual. Fotos de ocorrências e observações ficam somente no aparelho. Fotos dos contatos são sincronizadas com sua conta. Você decide quando exportar ou compartilhar.',
             icon: AppIcons.privacyTipOutlined,
           ),
           const SizedBox(height: 16),

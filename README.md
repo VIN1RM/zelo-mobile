@@ -8,7 +8,7 @@ A detecção é experimental. O aplicativo não confirma acidentes nem envia men
 ## Funcionalidades
 
 - Cadastro, login, verificação de e-mail, recuperação de senha e gerenciamento da conta.
-- Até três contatos de confiança, com contato principal, edição e teste dos canais.
+- Até três contatos de confiança, com contato principal, foto opcional por câmera/galeria, edição e teste dos canais.
 - Checklist de contatos, sensores e permissões antes do trajeto.
 - Monitoramento Android com posições Bolso/Suporte, alerta de 30 segundos e SOS manual.
 - Ajuda assistida por WhatsApp, e-mail ou cópia, com localização pontual quando disponível.
@@ -17,7 +17,8 @@ A detecção é experimental. O aplicativo não confirma acidentes nem envia men
 - Dados locais protegidos e sincronização de metadados com Firebase.
 - Tema claro/escuro automático, diagnóstico do aparelho, demonstração e licenças.
 
-Fotos e observações permanecem no aparelho. Os lembretes não iniciam a proteção e podem
+Fotos de ocorrências e observações permanecem no aparelho. Fotos de contatos são
+reduzidas a miniaturas de até 64 KB e sincronizadas em documentos privados do Firestore, sem Storage ou URL pública. Os lembretes não iniciam a proteção e podem
 sofrer atrasos pelas restrições de bateria do Android.
 
 ## Executar
@@ -60,3 +61,9 @@ Não versione credenciais de assinatura ou keystores.
 - `test` e `integration_test`: testes automatizados.
 
 Mudanças em [CHANGELOG.md](CHANGELOG.md).
+
+Para publicar as regras configuradas no projeto:
+
+```sh
+firebase deploy --project SEU_PROJECT_ID --only firestore:rules,firestore:indexes
+```

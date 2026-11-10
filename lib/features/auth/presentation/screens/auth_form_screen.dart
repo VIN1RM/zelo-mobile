@@ -25,6 +25,7 @@ class _AuthFormScreenState extends ConsumerState<AuthFormScreen> {
   final _password = TextEditingController();
   final _confirmation = TextEditingController();
   bool _resetRequested = false;
+  bool _submitted = false;
 
   bool get _register => widget.mode == AuthFormMode.register;
   bool get _reset => widget.mode == AuthFormMode.resetPassword;
@@ -44,6 +45,8 @@ class _AuthFormScreenState extends ConsumerState<AuthFormScreen> {
   }
 
   Future<void> _submit() async {
+    if (ref.read(authControllerProvider).isLoading || _resetRequested) return;
+    setState(() => _submitted = true);
     if (!_form.currentState!.validate()) return;
     FocusScope.of(context).unfocus();
     final success = await ref
@@ -76,7 +79,9 @@ class _AuthFormScreenState extends ConsumerState<AuthFormScreen> {
       children: [
         Form(
           key: _form,
-          autovalidateMode: AutovalidateMode.onUserInteraction,
+          autovalidateMode: _submitted
+              ? AutovalidateMode.onUserInteraction
+              : AutovalidateMode.disabled,
           child: AutofillGroup(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,

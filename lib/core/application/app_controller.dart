@@ -39,6 +39,9 @@ final repositoryProvider = FutureProvider<ZeloRepository>((ref) async {
   return ZeloRepository(await ref.watch(localStoreProvider.future), uid);
 }, retry: (retryCount, error) => null);
 final monitoringGatewayProvider = Provider((ref) => const MonitoringGateway());
+final syncEngineProvider = Provider.family<SyncEngine, ZeloRepository>(
+  (ref, repository) => SyncEngine(repository, FirebaseFirestore.instance),
+);
 
 class AppSnapshot {
   const AppSnapshot({
@@ -54,6 +57,7 @@ class AppSnapshot {
     this.issue,
     this.notice,
     this.alertRemainingSeconds,
+    this.remoteDataLoaded = false,
   });
   final List<EmergencyContact> contacts;
   final List<MonitoringSession> sessions;
@@ -67,6 +71,7 @@ class AppSnapshot {
   final String? issue;
   final String? notice;
   final int? alertRemainingSeconds;
+  final bool remoteDataLoaded;
   MonitoringSession? get session =>
       sessions.where((s) => s.operational).firstOrNull;
   Incident? get alert => incidents.where((i) => i.pending).firstOrNull;
@@ -98,12 +103,17 @@ class AppController extends AsyncNotifier<AppSnapshot> {
   int? _alertRemainingSeconds;
   final Set<String> _locationRequested = {};
   late SyncEngine _syncEngine;
+  bool _initializing = false;
+  bool _remoteDataLoaded = false;
 
   @override
   Future<AppSnapshot> build() async {
+    _initializing = true;
+    _remoteDataLoaded = false;
+    _notice = null;
     repository = await ref.watch(repositoryProvider.future);
     native = ref.read(monitoringGatewayProvider);
-    _syncEngine = SyncEngine(repository, FirebaseFirestore.instance);
+    _syncEngine = ref.read(syncEngineProvider(repository));
     final owner = repository.uid;
     final bridge = native;
     ref.onDispose(() {
@@ -111,9 +121,27 @@ class AppController extends AsyncNotifier<AppSnapshot> {
       unawaited(bridge.detach(owner).catchError((_) {}));
     });
     await _importNative();
+    final activeAlert = (await repository.incidents()).any(
+      (incident) => incident.pending,
+    );
+    final urgent = activeAlert || _running;
     if (await repository.preference('deleting') == null) {
+      if (!urgent) {
+        try {
+          await _syncEngine.pull();
+          _remoteDataLoaded = true;
+        } catch (_) {
+          _notice =
+              'Não foi possível buscar os dados da conta agora. Os dados salvos neste aparelho continuam disponíveis. Tente sincronizar novamente.';
+        }
+      }
+      if (!ref.mounted) {
+        throw const AppFailure('A sessão mudou durante o carregamento.');
+      }
       final user = ref.read(authUserProvider).asData?.value;
-      if (user != null && (await repository.rows('profiles')).isEmpty) {
+      if (_remoteDataLoaded &&
+          user != null &&
+          (await repository.rows('profiles')).isEmpty) {
         await repository.store.db.transaction(
           (tx) => repository.put(tx, 'profiles', {
             'id': user.id,
@@ -125,11 +153,12 @@ class AppController extends AsyncNotifier<AppSnapshot> {
       await repository.retain();
     }
     await AttachmentStore(repository).cleanup();
+    _initializing = false;
     _timer = Timer.periodic(
       const Duration(seconds: 1),
       (_) => unawaited(poll()),
     );
-    unawaited(_syncQuietly(pullRemote: true));
+    unawaited(_syncQuietly(pullRemote: urgent));
     return _load();
   }
 
@@ -148,8 +177,10 @@ class AppController extends AsyncNotifier<AppSnapshot> {
     issue: _issue,
     notice: _notice,
     alertRemainingSeconds: _alertRemainingSeconds,
+    remoteDataLoaded: _remoteDataLoaded,
   );
   Future<void> refresh() async {
+    if (_initializing) return;
     final snapshot = await _load();
     if (ref.mounted) state = AsyncData(snapshot);
   }
@@ -308,14 +339,16 @@ class AppController extends AsyncNotifier<AppSnapshot> {
   }
 
   Future<void> poll() async {
-    if (_polling || !ref.mounted) return;
+    if (_initializing || _polling || !ref.mounted) return;
     _polling = true;
     try {
       if (await repository.preference('deleting') == null) {
         await _importNative();
       }
       if (ref.mounted) await refresh();
-      if (++_ticks % 60 == 0) unawaited(_syncQuietly());
+      if (++_ticks % 60 == 0) {
+        unawaited(_syncQuietly(pullRemote: !_remoteDataLoaded));
+      }
     } catch (_) {
       _issue = 'Não foi possível atualizar os dados locais.';
     } finally {
@@ -506,6 +539,7 @@ class AppController extends AsyncNotifier<AppSnapshot> {
       whereArgs: [repository.uid],
     );
     final report = await _syncEngine.synchronize();
+    _remoteDataLoaded = _remoteDataLoaded || report.remoteDataLoaded;
     _notice = report.message;
     if (ref.mounted) await refresh();
     return report;
@@ -521,9 +555,19 @@ class AppController extends AsyncNotifier<AppSnapshot> {
           return;
         }
       }
-      if (!pullRemote && await repository.pendingCount() == 0) return;
+      if (!pullRemote && await repository.pendingCount() == 0) {
+        final stalePhotos = await repository.store.db.rawQuery(
+          '''SELECT 1 FROM contact_photos p
+          WHERE p.user_id=? AND NOT EXISTS (SELECT 1 FROM records r
+            WHERE r.user_id=p.user_id AND r.entity_type='contacts' AND r.is_deleted=0
+              AND json_extract(r.payload,'\$.photoPath')=p.storage_path) LIMIT 1''',
+          [repository.uid],
+        );
+        if (stalePhotos.isEmpty) return;
+      }
       final report = await _syncEngine.synchronize(pullRemote: pullRemote);
-      _notice = report.message;
+      _remoteDataLoaded = _remoteDataLoaded || report.remoteDataLoaded;
+      if (_remoteDataLoaded || _notice == null) _notice = report.message;
     } catch (_) {
       _notice =
           'Sincronização pendente. Seus registros permanecem no aparelho.';

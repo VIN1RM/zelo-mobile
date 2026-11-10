@@ -1,3 +1,4 @@
+import '../widgets/contact_avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -161,20 +162,7 @@ class ContactsScreen extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          radius: 22,
-                          backgroundColor: scheme.primaryContainer,
-                          foregroundColor: scheme.onPrimaryContainer,
-                          child: Text(
-                            contact.name.trim().isEmpty
-                                ? '?'
-                                : contact.name
-                                      .trim()
-                                      .characters
-                                      .first
-                                      .toUpperCase(),
-                          ),
-                        ),
+                        ContactAvatar(contact: contact),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(

@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { before, after, beforeEach, test } from 'node:test';
 import { initializeTestEnvironment, assertFails, assertSucceeds } from '@firebase/rules-unit-testing';
-import { doc, setDoc, getDoc, updateDoc, writeBatch, setLogLevel } from 'firebase/firestore';
+import { doc, setDoc, getDoc, updateDoc, writeBatch, setLogLevel, Bytes, deleteDoc } from 'firebase/firestore';
 setLogLevel('silent');
 
 let env;
@@ -64,4 +64,49 @@ test('account deletion fence blocks even an otherwise valid existing token',asyn
   await assertSucceeds(setDoc(doc(database,`account_deletions/${uid}`),{userId:uid,phase:'REQUESTED',createdAt:now}));
   await assertFails(setDoc(doc(database,path('1')),contact('a',1,'+5511999990001')));
   await assertSucceeds(updateDoc(doc(database,`account_deletions/${uid}`),{phase:'DATA_REMOVED'}));
+});
+
+
+const photoId='12345678-1234-1234-1234-123456789abc';
+const photoPath=(user=uid,id='a',version=photoId)=>`users/${user}/contact_photos/${id}/versions/${version}`;
+const png=new Uint8Array([137,80,78,71,13,10,26,10]);
+const photoValue=(bytes=png)=>({contactId:'a',bytes:Bytes.fromUint8Array(bytes),contentType:'image/png',updatedAt:now});
+async function upload(database=db(),value=photoValue(),target=photoPath()) {
+  const batch=writeBatch(database);
+  batch.set(doc(database,`users/${uid}/contact_photos/a`),{contactId:'a',updatedAt:now});
+  batch.set(doc(database,target),value);
+  return batch.commit();
+}
+
+test('photo reference accepts only its own account and contact, without public URLs',async()=>{
+  const value=contact('a',1,'+5511999990001');
+  await assertSucceeds(setDoc(doc(db(),path('1')),{...value,data:{...value.data,photoPath:photoPath()}}));
+  for(const invalid of [photoPath('other'),photoPath(uid,'b'),'https://example.com/photo.png']) {
+    await assertFails(setDoc(doc(db(),path('1')),{...value,revision:2,data:{...value.data,photoPath:invalid}}));
+  }
+  await assertFails(setDoc(doc(db(),path('1')),{...value,revision:2,deleted:true,data:{...value.data,photoPath:photoPath()}}));
+});
+
+test('private thumbnail documents require verified ownership, a manifest and a small PNG',async()=>{
+  await assertFails(setDoc(doc(db(),photoPath()),photoValue()));
+  await assertSucceeds(upload());
+  await assertSucceeds(getDoc(doc(db(),photoPath())));
+  await assertFails(getDoc(doc(env.authenticatedContext('other',{email_verified:true}).firestore(),photoPath())));
+  await assertFails(getDoc(doc(env.authenticatedContext(uid,{email_verified:false}).firestore(),photoPath())));
+  await assertFails(getDoc(doc(env.unauthenticatedContext().firestore(),photoPath())));
+  await assertFails(upload(env.authenticatedContext('other',{email_verified:true}).firestore()));
+  await assertFails(upload(db(),photoValue(new Uint8Array(65537))));
+  await assertFails(upload(db(),{...photoValue(),contentType:'text/plain'}));
+  await assertFails(upload(db(),{...photoValue(),contactId:'b'}));
+  await assertFails(upload(db(),{...photoValue(),bytes:'not-binary'}));
+  await assertFails(upload(db(),photoValue(),photoPath(uid,'a','bad-id')));
+  await assertSucceeds(deleteDoc(doc(db(),photoPath())));
+});
+
+test('deletion fence blocks thumbnail uploads while allowing cleanup',async()=>{
+  await assertSucceeds(upload());
+  await setDoc(doc(db(),`account_deletions/${uid}`),{userId:uid,phase:'REQUESTED',createdAt:now});
+  await assertFails(upload());
+  await assertSucceeds(deleteDoc(doc(db(),photoPath())));
+  await assertSucceeds(deleteDoc(doc(db(),`users/${uid}/contact_photos/a`)));
 });

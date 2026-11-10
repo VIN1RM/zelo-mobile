@@ -10,6 +10,7 @@ import '../../auth/domain/auth_validation.dart';
 import '../../history/data/attachment_store.dart';
 import '../../monitoring/data/monitoring_gateway.dart';
 import '../../settings/data/reminder_gateway.dart';
+import '../../contacts/data/contact_photo_store.dart';
 
 class AccountService {
   AccountService(this.repository, this.auth, this.firestore);
@@ -126,6 +127,9 @@ class AccountService {
         );
       }
     }
+    await FirestoreContactPhotoCloud(
+      firestore: firestore,
+    ).deleteAccount(repository.uid);
     await repository.setPreference('deleting', 'remoteConfirmed');
     await fence
         .update({'phase': 'DATA_REMOVED'})
@@ -157,6 +161,7 @@ class AccountService {
         'share_attempts',
         'native_receipts',
         'diagnostics',
+        'contact_photos',
       ]) {
         await tx.delete(table, where: 'user_id=?', whereArgs: [repository.uid]);
       }

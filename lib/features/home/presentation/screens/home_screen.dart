@@ -58,6 +58,15 @@ class HomeScreen extends StatelessWidget {
               'Cuidado em cada caminho.',
               subtitle: 'Você escolhe quando sua proteção começa.',
             ),
+            if (!data.remoteDataLoaded && data.notice != null) ...[
+              AppActionTile(
+                icon: AppIcons.cloudSyncOutlined,
+                title: 'Atualizar dados da conta',
+                subtitle: data.notice,
+                onTap: () => context.push('/sincronizacao'),
+              ),
+              const SizedBox(height: 16),
+            ],
             _ProtectionHero(
               active: active,
               status: status,

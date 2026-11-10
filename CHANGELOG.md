@@ -6,6 +6,10 @@ Mudanças relevantes do ZELO. A versão `1.0.0+1` permanece em desenvolvimento, 
 
 ### Adicionado
 
+- Foto opcional de contatos por câmera/galeria, com prévia, remoção, redução e cache no banco local protegido.
+- Sincronização de miniaturas privadas de até 64 KB em documentos separados no Firestore, sem dependência de Firebase Storage.
+- Regras de miniaturas por conta verificada, limite de tamanho/formato, exclusão de imagens antigas e bloqueio de gravação durante exclusão da conta.
+
 - Autenticação por e-mail/senha, cadastro, verificação de e-mail e recuperação de senha.
 - Perfil com alteração de nome, saída e exclusão retomável da conta e dos dados.
 - Rede de apoio com até três contatos, prioridade, máscara de WhatsApp e teste assistido dos canais.
@@ -26,6 +30,9 @@ Mudanças relevantes do ZELO. A versão `1.0.0+1` permanece em desenvolvimento, 
 
 ### Alterado
 
+- Fotos de contatos usam miniaturas PNG reduzidas, cache local protegido e documentos privados do Firestore; os bytes ficam sem indexação.
+- Referências e fotos locais da implementação anterior são compatíveis com a migração para miniaturas no Firestore.
+
 - Cartões de contatos com identificação do principal, canais separados, ações de editar/testar e menu de prioridade/exclusão.
 - Filtros do histórico centralizados e seleção de período com resumo do intervalo aplicado.
 - Organização da condição atual nos detalhes, com ações responsivas e acesso destacado ao pedido de ajuda.
@@ -36,6 +43,10 @@ Mudanças relevantes do ZELO. A versão `1.0.0+1` permanece em desenvolvimento, 
 - README simplificado para funcionalidades atuais, execução, validação e geração do APK.
 
 ### Corrigido
+
+- Formulários de acesso exibem erros somente após tentativa de envio; focar ou digitar no e-mail não valida a senha vazia.
+- Entrada aguarda a busca inicial dos dados da conta antes de apresentar o conteúdo; contatos restaurados não provocam redirecionamento indevido ao checklist.
+- Falhas de conexão preservam o cache local e oferecem acesso à sincronização, sem tratar a conta como vazia.
 
 - Ocorrências antigas pendentes não redirecionam o usuário para Pedir ajuda ao entrar; alertas ativos mantêm seu fluxo.
 - Seleção e alinhamento das opções Bolso/Suporte na tela inicial.
