@@ -1,3 +1,4 @@
+import '../../../../shared/widgets/app_header.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -128,7 +129,7 @@ class _DeviceResourcesScreenState extends ConsumerState<DeviceResourcesScreen>
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Recursos do aparelho')),
+    appBar: AppHeader(title: const Text('Recursos do aparelho')),
     body: ListView(
       padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
       children: [

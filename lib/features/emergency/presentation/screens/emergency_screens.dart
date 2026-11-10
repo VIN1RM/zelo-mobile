@@ -1,3 +1,4 @@
+import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -29,7 +30,7 @@ class AlertScreen extends StatelessWidget {
       return PopScope(
         canPop: false,
         child: Scaffold(
-          appBar: AppBar(
+          appBar: AppHeader(
             automaticallyImplyLeading: false,
             title: const Text('Possível acidente'),
           ),
@@ -129,7 +130,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
           data.contacts.firstOrNull;
       if (incident == null) {
         return Scaffold(
-          appBar: AppBar(title: const Text('Pedir ajuda')),
+          appBar: AppHeader(title: const Text('Pedir ajuda')),
           body: const Center(
             child: Text('Registro não encontrado nesta conta.'),
           ),
@@ -152,7 +153,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
       }
 
       return Scaffold(
-        appBar: AppBar(
+        appBar: AppHeader(
           title: const Text('Pedir ajuda'),
           leading: IconButton(
             tooltip: 'Voltar ao início',
@@ -160,7 +161,7 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
             onPressed: () => context.go('/inicio'),
           ),
         ),
-        body: ListView(
+        body: OrganizedListView(
           padding: const EdgeInsets.all(24),
           children: [
             SectionHeading(
@@ -175,25 +176,37 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
               icon: AppIcons.sendOutlined,
             ),
             const SizedBox(height: 16),
-            if (data.contacts.isNotEmpty)
-              DropdownButtonFormField<String>(
-                isExpanded: true,
-                initialValue: contact?.id,
-                decoration: const InputDecoration(labelText: 'Contato'),
-                items: data.contacts
-                    .map(
-                      (c) => DropdownMenuItem(
-                        value: c.id,
-                        child: Text(c.name, overflow: TextOverflow.ellipsis),
-                      ),
-                    )
-                    .toList(),
-                onChanged: sharing
-                    ? null
-                    : (value) => setState(() => contactId = value),
+            const SectionHeading('1. Escolha quem pode ajudar'),
+            for (final person in data.contacts)
+              Card(
+                color: person.id == contact?.id
+                    ? Theme.of(context).colorScheme.primaryContainer
+                    : null,
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  leading: const Icon(AppIcons.personOutlineRounded),
+                  title: Text(person.name),
+                  subtitle: Text(
+                    person.id == data.contacts.first.id
+                        ? 'Contato principal'
+                        : 'Contato de apoio',
+                  ),
+                  trailing: Icon(
+                    person.id == contact?.id
+                        ? Icons.check_circle_rounded
+                        : Icons.circle_outlined,
+                  ),
+                  selected: person.id == contact?.id,
+                  onTap: sharing
+                      ? null
+                      : () => setState(() => contactId = person.id),
+                ),
               ),
             const SizedBox(height: 16),
-            const SectionHeading('Confira a mensagem'),
+            const SectionHeading('2. Confira a mensagem'),
             SectionCard(
               child: SelectableText(
                 ShareEmergency.message(incident, name, DateTime.now().toUtc()),
@@ -207,12 +220,13 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
                 ),
               ),
             const SizedBox(height: 20),
+            const SectionHeading('3. Escolha o canal'),
             FilledButton.icon(
               onPressed: sharing || contact?.phone == null
                   ? null
                   : () => share('whatsapp'),
               icon: const Icon(AppIcons.chatOutlined),
-              label: const Text('Abrir WhatsApp'),
+              label: LoadingLabel(loading: sharing, label: 'Abrir WhatsApp'),
             ),
             const SizedBox(height: 12),
             OutlinedButton.icon(

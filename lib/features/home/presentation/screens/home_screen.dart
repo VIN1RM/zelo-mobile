@@ -1,9 +1,9 @@
+import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../app/theme/app_colors.dart';
 import '../../../../shared/widgets/app_view.dart';
-import '../../../../shared/widgets/zelo_logo.dart';
 import '../widgets/phone_position_selector.dart';
 import '../../../monitoring/domain/monitoring_session.dart';
 
@@ -40,10 +40,8 @@ class HomeScreen extends StatelessWidget {
       }
 
       return Scaffold(
-        appBar: AppBar(
-          title: const Row(
-            children: [ZeloLogo(size: 32), SizedBox(width: 10), Text('ZELO')],
-          ),
+        appBar: AppHeader(
+          title: const Text('Início'),
           actions: [
             IconButton(
               tooltip: 'Preparar proteção',
@@ -79,10 +77,9 @@ class HomeScreen extends StatelessWidget {
                       ? AppIcons.stopCircleOutlined
                       : AppIcons.playArrowRounded,
                 ),
-                label: Text(
-                  data.busy
-                      ? 'Aguarde…'
-                      : session != null && data.running
+                label: LoadingLabel(
+                  loading: data.busy,
+                  label: session != null && data.running
                       ? 'Encerrar proteção'
                       : !data.prepared
                       ? 'Preparar proteção'

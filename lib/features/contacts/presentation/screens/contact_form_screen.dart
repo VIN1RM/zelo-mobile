@@ -1,3 +1,5 @@
+import '../../../../core/formatting/phone_format.dart';
+import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import '../../../../shared/widgets/app_view.dart';
@@ -35,13 +37,13 @@ class _ContactFormScreenState extends State<ContactFormScreen> {
             .where((c) => c.id == widget.id)
             .firstOrNull;
         name.text = contact?.name ?? '';
-        phone.text = contact?.phone ?? '';
+        phone.text = formatPhone(contact?.phone);
         email.text = contact?.email ?? '';
         expectedRevision = contact?.revision;
         initialized = true;
       }
       return Scaffold(
-        appBar: AppBar(
+        appBar: AppHeader(
           title: Text(widget.id == null ? 'Novo contato' : 'Editar contato'),
         ),
         body: Form(
@@ -77,6 +79,7 @@ class _ContactFormScreenState extends State<ContactFormScreen> {
                 const SizedBox(height: 16),
                 TextFormField(
                   controller: phone,
+                  inputFormatters: [PhoneInputFormatter()],
                   textInputAction: TextInputAction.next,
                   validator: (value) {
                     if ((value ?? '').trim().isEmpty &&
@@ -95,7 +98,7 @@ class _ContactFormScreenState extends State<ContactFormScreen> {
                   decoration: const InputDecoration(
                     labelText: 'WhatsApp',
                     prefixIcon: Icon(AppIcons.chatOutlined),
-                    hintText: '+5511999999999',
+                    hintText: '+55 (11) 99999-9999',
                     helperText: 'Inclua +, código do país e DDD.',
                     helperMaxLines: 3,
                     errorMaxLines: 3,
@@ -143,7 +146,10 @@ class _ContactFormScreenState extends State<ContactFormScreen> {
                           );
                           if (saved && context.mounted) Navigator.pop(context);
                         },
-                  child: Text(data.busy ? 'Salvando…' : 'Salvar contato'),
+                  child: LoadingLabel(
+                    loading: data.busy,
+                    label: 'Salvar contato',
+                  ),
                 ),
               ],
             ),

@@ -1,3 +1,4 @@
+import 'package:zelo_mobile/features/emergency/domain/incident.dart';
 import 'package:zelo_mobile/core/application/app_controller.dart';
 import '../../support/fake_app_controller.dart';
 import 'package:flutter/widgets.dart';
@@ -10,7 +11,47 @@ import 'package:zelo_mobile/features/auth/presentation/providers/auth_providers.
 
 import '../../support/fake_auth_repository.dart';
 
+class _PendingHelpController extends FakeAppController {
+  @override
+  Future<AppSnapshot> build() async => AppSnapshot(
+    prepared: true,
+    incidents: [
+      Incident(
+        id: 'old-incident',
+        type: 'SOS',
+        occurredAt: DateTime.utc(2026),
+        outcome: 'HELP_REQUESTED',
+        condition: 'NEEDS_HELP',
+        preserved: true,
+      ),
+    ],
+  );
+}
+
 void main() {
+  testWidgets('login keeps home open when an old request remains unresolved', (
+    tester,
+  ) async {
+    final repository = FakeAuthRepository(user: verifiedUser);
+    addTearDown(repository.dispose);
+    final container = ProviderContainer(
+      overrides: [
+        authRepositoryProvider.overrideWithValue(repository),
+        appControllerProvider.overrideWith(_PendingHelpController.new),
+      ],
+    );
+    addTearDown(container.dispose);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(container: container, child: const ZeloApp()),
+    );
+    await tester.pumpAndSettle();
+    expect(
+      container.read(appRouterProvider).routeInformationProvider.value.uri.path,
+      '/inicio',
+    );
+    await tester.pumpWidget(const SizedBox());
+  });
+
   test(
     'every protected entry rejects signed out, unknown and unverified sessions',
     () {

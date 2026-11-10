@@ -1,3 +1,4 @@
+import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'dart:convert';
 import 'dart:typed_data';
@@ -39,7 +40,7 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
           widget.type == 'incidents' && incident == null ||
           widget.type == 'sessions' && session == null) {
         return Scaffold(
-          appBar: AppBar(title: const Text('Detalhes')),
+          appBar: AppHeader(title: const Text('Detalhes')),
           body: const Center(
             child: Text('Registro não encontrado nesta conta.'),
           ),
@@ -51,8 +52,8 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
       }
       final location = incident?.location ?? session?.location;
       return Scaffold(
-        appBar: AppBar(title: const Text('Detalhes do registro')),
-        body: ListView(
+        appBar: AppHeader(title: const Text('Detalhes do registro')),
+        body: OrganizedListView(
           padding: const EdgeInsets.all(24),
           children: [
             SectionHeading(
@@ -83,9 +84,19 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
                         ),
                       ),
               ),
-              Text('Posição: ${session.position.label}'),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: const Icon(AppIcons.phoneAndroidRounded),
+                title: const Text('Posi\u00e7\u00e3o do celular'),
+                subtitle: Text(session.position.label),
+              ),
               if (session.endedAt != null)
-                Text('Fim: ${dateLabel(session.endedAt!)}'),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(AppIcons.history),
+                  title: const Text('Fim do trajeto'),
+                  subtitle: Text(dateLabel(session.endedAt!)),
+                ),
             ],
             const SectionHeading('Localização registrada'),
             Text(

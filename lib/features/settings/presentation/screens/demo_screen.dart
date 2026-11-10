@@ -1,4 +1,6 @@
+import '../../../../shared/widgets/app_header.dart';
 import 'dart:async';
+import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import '../../../../shared/widgets/app_view.dart';
 
@@ -11,7 +13,7 @@ class DemoScreen extends StatefulWidget {
 class _DemoScreenState extends State<DemoScreen> {
   Timer? timer;
   DateTime? deadline;
-  String message = 'Nenhum evento simulado.';
+  String message = 'Experimente o alerta antes de precisar dele.';
   @override
   void dispose() {
     timer?.cancel();
@@ -33,7 +35,7 @@ class _DemoScreenState extends State<DemoScreen> {
           data.alert != null ||
           data.unresolved != null) {
         return Scaffold(
-          appBar: AppBar(title: const Text('Demonstração')),
+          appBar: AppHeader(title: const Text('Demonstração')),
           body: const Padding(
             padding: EdgeInsets.all(24),
             child: Text(
@@ -48,10 +50,15 @@ class _DemoScreenState extends State<DemoScreen> {
                 .ceil()
                 .clamp(0, 30);
       return Scaffold(
-        appBar: AppBar(title: const Text('DEMONSTRAÇÃO')),
-        body: ListView(
+        appBar: AppHeader(title: const Text('DEMONSTRAÇÃO')),
+        body: OrganizedListView(
           padding: const EdgeInsets.all(24),
           children: [
+            const SectionHeading(
+              'Conheça o fluxo de ajuda',
+              subtitle:
+                  '1. Simule um movimento suspeito. 2. Responda ao alerta. 3. Veja o resultado.',
+            ),
             const Text(
               'SIMULAÇÃO — NÃO É UMA EMERGÊNCIA',
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -61,11 +68,18 @@ class _DemoScreenState extends State<DemoScreen> {
               'Este fluxo não usa sensores, não envia mensagens e não grava no histórico ou na sincronização.',
             ),
             const SizedBox(height: 24),
-            Text(
-              deadline == null
+            if (deadline != null) ...[
+              AlertCountdown(seconds: remaining),
+              const SizedBox(height: 24),
+            ],
+            StatusPanel(
+              icon: AppIcons.infoOutlineRounded,
+              title: deadline == null
+                  ? 'Pronto para experimentar'
+                  : 'Você está bem?',
+              message: deadline == null
                   ? message
-                  : 'Alerta simulado: $remaining segundos',
-              style: Theme.of(context).textTheme.headlineSmall,
+                  : 'Responda em $remaining segundos. Sem resposta, um pedido de ajuda será simulado.',
             ),
             const SizedBox(height: 16),
             FilledButton(

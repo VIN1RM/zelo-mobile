@@ -1,3 +1,4 @@
+import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -16,7 +17,7 @@ class _SyncScreenState extends State<SyncScreen> {
   @override
   Widget build(BuildContext context) => AppView(
     builder: (context, data, app) => Scaffold(
-      appBar: AppBar(title: const Text('Sincronização')),
+      appBar: AppHeader(title: const Text('Sincronização')),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [

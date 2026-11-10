@@ -1,3 +1,4 @@
+import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -9,7 +10,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => AppView(
     builder: (context, data, app) => Scaffold(
-      appBar: AppBar(title: const Text('Ajustes')),
+      appBar: AppHeader(title: const Text('Ajustes')),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(20, 8, 20, 28),
         children: [

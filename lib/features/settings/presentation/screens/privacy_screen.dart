@@ -1,3 +1,4 @@
+import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import '../../../../features/history/data/attachment_store.dart';
@@ -8,8 +9,8 @@ class PrivacyScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => AppView(
     builder: (context, data, app) => Scaffold(
-      appBar: AppBar(title: const Text('Privacidade e armazenamento')),
-      body: ListView(
+      appBar: AppHeader(title: const Text('Privacidade e armazenamento')),
+      body: OrganizedListView(
         padding: const EdgeInsets.all(24),
         children: [
           const SectionHeading(
@@ -17,6 +18,7 @@ class PrivacyScreen extends StatelessWidget {
             subtitle: 'Entenda o que é salvo, compartilhado e excluído.',
           ),
           const SizedBox(height: 16),
+          const SectionHeading('Conta e sincronização'),
           const Text(
             'Nome e e-mail são tratados pelo Firebase Authentication para acesso à conta. Contatos, sessões e ocorrências são salvos no banco protegido do aparelho; metadados são sincronizados com o projeto Firebase do ZELO quando há acesso ao servidor.',
           ),
@@ -37,6 +39,7 @@ class PrivacyScreen extends StatelessWidget {
             'Não reinstale ou apague dados enquanto houver exclusões pendentes: a fila local pode ser perdida. Fotos locais não serão recuperadas em outro aparelho. A exclusão da conta exige internet e está disponível em Minha conta.',
           ),
           const SizedBox(height: 16),
+          const SectionHeading('Armazenamento neste aparelho'),
           Text(
             '${data.sessions.length} trajetos • ${data.incidents.length} ocorrências • ${data.pendingSync} operações pendentes',
           ),

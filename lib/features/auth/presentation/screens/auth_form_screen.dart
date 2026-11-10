@@ -1,3 +1,4 @@
+import '../../../../shared/widgets/app_components.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -146,12 +147,9 @@ class _AuthFormScreenState extends ConsumerState<AuthFormScreen> {
                 ],
                 FilledButton(
                   onPressed: busy || _resetRequested ? null : _submit,
-                  child: Text(
-                    busy
-                        ? 'Aguarde…'
-                        : _reset
-                        ? 'Enviar instruções'
-                        : title,
+                  child: LoadingLabel(
+                    loading: busy,
+                    label: _reset ? 'Enviar instruções' : title,
                   ),
                 ),
                 if (!_register && !_reset)

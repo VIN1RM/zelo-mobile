@@ -49,7 +49,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('ZELO'), findsOneWidget);
+    expect(find.text('IN\u00cdCIO'), findsOneWidget);
     expect(find.text('Proteção desativada'), findsOneWidget);
     expect(find.text('Proteção ativa'), findsNothing);
   });

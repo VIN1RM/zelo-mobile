@@ -1,3 +1,4 @@
+import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -32,14 +33,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         name.text = user?.name ?? '';
         initialized = true;
       }
-      final service = AccountService(
+      AccountService service() => AccountService(
         app.repository,
         FirebaseAuth.instance,
         FirebaseFirestore.instance,
       );
       return Scaffold(
-        appBar: AppBar(title: const Text('Minha conta')),
-        body: ListView(
+        appBar: AppHeader(title: const Text('Minha conta')),
+        body: OrganizedListView(
           padding: const EdgeInsets.all(24),
           children: [
             StatusPanel(
@@ -64,10 +65,10 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   ? null
                   : () => uiAction(
                       context,
-                      () => app.operation(() => service.rename(name.text)),
+                      () => app.operation(() => service().rename(name.text)),
                       success: 'Nome atualizado.',
                     ),
-              child: const Text('Salvar nome'),
+              child: LoadingLabel(loading: data.busy, label: 'Salvar nome'),
             ),
             TextButton(
               onPressed: data.busy
@@ -82,7 +83,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         await uiAction(
                           context,
                           () => app.operation(
-                            service.signOut,
+                            service().signOut,
                             allowDuringDeletion: true,
                           ),
                         );
@@ -129,7 +130,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         await uiAction(
                           context,
                           () => app.operation(
-                            () => service.delete(password.text),
+                            () => service().delete(password.text),
                             allowDuringDeletion: true,
                           ),
                         );

@@ -62,6 +62,7 @@ class _SafetyCoordinatorState extends ConsumerState<SafetyCoordinator>
             final target = '/alerta/${data.alert!.id}';
             if (path != target) router.go(target);
           } else if (data.unresolved != null &&
+              previous?.asData?.value.alert?.id == data.unresolved!.id &&
               !_shownHelp.contains(data.unresolved!.id)) {
             _shownHelp.add(data.unresolved!.id);
             final target = '/ajuda/${data.unresolved!.id}';

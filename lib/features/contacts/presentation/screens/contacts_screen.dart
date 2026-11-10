@@ -1,3 +1,5 @@
+import '../../../../core/formatting/phone_format.dart';
+import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -9,7 +11,7 @@ class ContactsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => AppView(
     builder: (context, data, app) => Scaffold(
-      appBar: AppBar(
+      appBar: AppHeader(
         title: const Text('Contatos'),
         actions: [
           IconButton(
@@ -47,6 +49,7 @@ class ContactsScreen extends StatelessWidget {
               ),
               itemCount: data.contacts.length,
               onReorder: (oldIndex, newIndex) async {
+                if (data.busy) return;
                 if (newIndex > oldIndex) newIndex--;
                 final ids = data.contacts.map((c) => c.id).toList();
                 final id = ids.removeAt(oldIndex);
@@ -62,7 +65,7 @@ class ContactsScreen extends StatelessWidget {
                 return Card(
                   key: ValueKey(contact.id),
                   child: Padding(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -79,11 +82,35 @@ class ContactsScreen extends StatelessWidget {
                           ),
                           title: Text(contact.name),
                           subtitle: Text(
-                            '${index == 0 ? 'Contato principal\n' : ''}${contact.phone ?? ''}${contact.email == null ? '' : '\n${contact.email}'}',
+                            '${index == 0 ? 'Contato principal\n' : ''}${formatPhone(contact.phone)}${contact.email == null ? '' : '\n${contact.email}'}',
                           ),
                         ),
                         Wrap(
+                          spacing: 8,
+                          runSpacing: 4,
                           children: [
+                            if (index != 0)
+                              OutlinedButton.icon(
+                                onPressed: data.busy
+                                    ? null
+                                    : () => uiAction(
+                                        context,
+                                        () => app.operation(
+                                          () => app.repository.reorderContacts([
+                                            contact.id,
+                                            ...data.contacts
+                                                .where(
+                                                  (c) => c.id != contact.id,
+                                                )
+                                                .map((c) => c.id),
+                                          ]),
+                                        ),
+                                        success:
+                                            'Contato principal atualizado.',
+                                      ),
+                                icon: const Icon(AppIcons.shieldOutlined),
+                                label: const Text('Tornar principal'),
+                              ),
                             TextButton.icon(
                               onPressed: data.busy
                                   ? null
@@ -117,39 +144,42 @@ class ContactsScreen extends StatelessWidget {
                               label: const Text('Excluir'),
                             ),
                             TextButton(
-                              onPressed: () async {
-                                if (!await confirmAction(
-                                  context,
-                                  'Testar canal?',
-                                  'Será aberta uma mensagem marcada como TESTE. Você decide se deseja enviá-la.',
-                                )) {
-                                  return;
-                                }
-                                final text =
-                                    'TESTE DO ZELO — NÃO É UMA EMERGÊNCIA. Este é um teste do contato ${contact.name}.';
-                                final uri = contact.phone != null
-                                    ? Uri.https(
-                                        'wa.me',
-                                        contact.phone!.substring(1),
-                                        {'text': text},
-                                      )
-                                    : Uri(
-                                        scheme: 'mailto',
-                                        path: contact.email,
-                                        query:
-                                            'subject=TESTE%20DO%20ZELO&body=${Uri.encodeComponent(text)}',
-                                      );
-                                if (context.mounted) {
-                                  await uiAction(context, () async {
-                                    if (!await launchUrl(
-                                      uri,
-                                      mode: LaunchMode.externalApplication,
-                                    )) {
-                                      throw Exception('Unavailable');
-                                    }
-                                  });
-                                }
-                              },
+                              onPressed: data.busy
+                                  ? null
+                                  : () async {
+                                      if (!await confirmAction(
+                                        context,
+                                        'Testar canal?',
+                                        'Será aberta uma mensagem marcada como TESTE. Você decide se deseja enviá-la.',
+                                      )) {
+                                        return;
+                                      }
+                                      final text =
+                                          'TESTE DO ZELO — NÃO É UMA EMERGÊNCIA. Este é um teste do contato ${contact.name}.';
+                                      final uri = contact.phone != null
+                                          ? Uri.https(
+                                              'wa.me',
+                                              contact.phone!.substring(1),
+                                              {'text': text},
+                                            )
+                                          : Uri(
+                                              scheme: 'mailto',
+                                              path: contact.email,
+                                              query:
+                                                  'subject=TESTE%20DO%20ZELO&body=${Uri.encodeComponent(text)}',
+                                            );
+                                      if (context.mounted) {
+                                        await uiAction(context, () async {
+                                          if (!await launchUrl(
+                                            uri,
+                                            mode:
+                                                LaunchMode.externalApplication,
+                                          )) {
+                                            throw Exception('Unavailable');
+                                          }
+                                        });
+                                      }
+                                    },
                               child: const Text('Testar canal'),
                             ),
                           ],

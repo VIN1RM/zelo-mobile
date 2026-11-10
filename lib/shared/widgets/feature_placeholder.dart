@@ -1,3 +1,4 @@
+import 'app_header.dart';
 import 'package:flutter/material.dart';
 
 import '../../app/theme/app_colors.dart';
@@ -17,7 +18,7 @@ class FeaturePlaceholder extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(title)),
+      appBar: AppHeader(title: Text(title)),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),

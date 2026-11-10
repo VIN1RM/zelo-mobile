@@ -1,3 +1,4 @@
+import 'app_header.dart';
 import '../presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -29,7 +30,7 @@ class AppView extends ConsumerWidget {
           ),
         ),
         error: (error, stack) => Scaffold(
-          appBar: AppBar(title: const Text('ZELO')),
+          appBar: AppHeader(title: const Text('ZELO')),
           body: ListView(
             padding: const EdgeInsets.all(24),
             children: [
@@ -83,23 +84,66 @@ Future<bool> uiAction(
 Future<bool> confirmAction(
   BuildContext context,
   String title,
-  String message,
-) async =>
-    await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+  String message, {
+  String? confirmLabel,
+  bool? destructive,
+}) async {
+  final danger = destructive ?? title.toLowerCase().startsWith('excluir');
+  final label =
+      confirmLabel ??
+      (danger
+          ? 'Excluir'
+          : title.startsWith('Testar')
+          ? 'Abrir teste'
+          : title.startsWith('Sair')
+          ? 'Sair da conta'
+          : title.startsWith('Encerrar')
+          ? 'Encerrar proteção'
+          : 'Continuar');
+  return await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          scrollable: true,
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 24,
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Confirmar'),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(28),
           ),
-        ],
-      ),
-    ) ??
-    false;
+          icon: Center(
+            child: IconBadge(
+              danger ? AppIcons.deleteOutline : AppIcons.infoOutlineRounded,
+              tone: danger ? AppTone.danger : AppTone.neutral,
+            ),
+          ),
+          title: Text(title, textAlign: TextAlign.center),
+          content: Text(message, textAlign: TextAlign.center),
+          actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
+          actions: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FilledButton(
+                  style: danger
+                      ? FilledButton.styleFrom(
+                          backgroundColor: AppTone.danger.foreground,
+                          foregroundColor: Colors.white,
+                        )
+                      : null,
+                  onPressed: () => Navigator.pop(context, true),
+                  child: Text(label),
+                ),
+                const SizedBox(height: 8),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Cancelar'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ) ??
+      false;
+}

@@ -1,3 +1,4 @@
+import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -10,7 +11,7 @@ class PreparationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => AppView(
     builder: (context, data, app) => Scaffold(
-      appBar: AppBar(title: const Text('Preparar proteção')),
+      appBar: AppHeader(title: const Text('Preparar proteção')),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [

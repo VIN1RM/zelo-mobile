@@ -249,3 +249,64 @@ class AppEmptyState extends StatelessWidget {
     ),
   );
 }
+
+class LoadingLabel extends StatelessWidget {
+  const LoadingLabel({required this.loading, required this.label, super.key});
+  final bool loading;
+  final String label;
+  @override
+  Widget build(BuildContext context) => loading
+      ? SizedBox.square(
+          dimension: 22,
+          child: CircularProgressIndicator(
+            strokeWidth: 2.5,
+            semanticsLabel: label,
+          ),
+        )
+      : Text(label, textAlign: TextAlign.center);
+}
+
+class OrganizedListView extends StatelessWidget {
+  const OrganizedListView({
+    required this.children,
+    this.padding = const EdgeInsets.all(20),
+    super.key,
+  });
+  final List<Widget> children;
+  final EdgeInsetsGeometry padding;
+  @override
+  Widget build(BuildContext context) {
+    final groups = <Widget>[];
+    var section = <Widget>[];
+    void flush() {
+      if (section.isEmpty) return;
+      groups.add(
+        Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: SectionCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: section,
+            ),
+          ),
+        ),
+      );
+      section = <Widget>[];
+    }
+
+    for (final child in children) {
+      if (child is SectionHeading) flush();
+      section.add(child);
+    }
+    flush();
+    return SafeArea(
+      top: false,
+      child: Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 640),
+          child: ListView(padding: padding, children: groups),
+        ),
+      ),
+    );
+  }
+}

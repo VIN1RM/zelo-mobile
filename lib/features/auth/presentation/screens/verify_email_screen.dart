@@ -1,3 +1,4 @@
+import '../../../../shared/widgets/app_components.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -59,7 +60,7 @@ class _VerifyEmailScreenState extends ConsumerState<VerifyEmailScreen> {
               : () => ref
                     .read(authControllerProvider.notifier)
                     .run((actions) => actions.checkVerification()),
-          child: Text(busy ? 'Aguarde…' : 'Já verifiquei'),
+          child: LoadingLabel(loading: busy, label: 'Já verifiquei'),
         ),
         const SizedBox(height: 12),
         OutlinedButton(

@@ -1,3 +1,4 @@
+import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
@@ -49,7 +50,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             ]
             ..sort((a, b) => b.at.compareTo(a.at));
       return Scaffold(
-        appBar: AppBar(title: const Text('Histórico')),
+        appBar: AppHeader(title: const Text('Histórico')),
         body: Column(
           children: [
             Padding(

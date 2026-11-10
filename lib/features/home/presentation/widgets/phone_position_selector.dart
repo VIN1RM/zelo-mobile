@@ -12,11 +12,20 @@ class PhonePositionSelector extends StatelessWidget {
   final ValueChanged<PhonePosition>? onChanged;
   @override
   Widget build(BuildContext context) => Wrap(
+    alignment: WrapAlignment.center,
+    crossAxisAlignment: WrapCrossAlignment.center,
     spacing: 12,
     runSpacing: 8,
     children: [
       for (final option in PhonePosition.values)
         ChoiceChip(
+          showCheckmark: false,
+          selectedColor: Theme.of(context).colorScheme.primaryContainer,
+          side: BorderSide(
+            color: position == option
+                ? Theme.of(context).colorScheme.primary
+                : Theme.of(context).colorScheme.outlineVariant,
+          ),
           avatar: Icon(
             option == PhonePosition.pocket
                 ? AppIcons.phoneAndroidRounded

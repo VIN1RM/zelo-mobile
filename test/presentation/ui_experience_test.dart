@@ -1,3 +1,9 @@
+import 'package:zelo_mobile/features/profile/presentation/screens/profile_screen.dart';
+import 'package:zelo_mobile/features/settings/presentation/screens/device_diagnostics_screen.dart';
+import 'package:zelo_mobile/features/settings/presentation/providers/diagnostics_provider.dart';
+import 'package:zelo_mobile/features/settings/domain/device_diagnostics.dart';
+import 'package:zelo_mobile/features/settings/presentation/screens/demo_screen.dart';
+import 'package:zelo_mobile/features/settings/presentation/screens/privacy_screen.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -88,6 +94,14 @@ void main() {
   tearDown(() => store.close());
 
   const screens = <String, Widget>{
+    'conta': ProfileScreen(),
+    'diagnostico': DeviceDiagnosticsScreen(),
+    'ocorrencia': RecordDetailsScreen(
+      type: 'incidents',
+      id: 'incident-preview',
+    ),
+    'demonstracao': DemoScreen(),
+    'privacidade': PrivacyScreen(),
     'inicio': HomeScreen(),
     'contatos': ContactsScreen(),
     'novo-contato': ContactFormScreen(),
@@ -147,6 +161,15 @@ void main() {
           await tester.pumpWidget(
             ProviderScope(
               overrides: [
+                deviceDiagnosticsProvider.overrideWith(
+                  (ref) async => const DeviceDiagnostics(
+                    androidApi: 35,
+                    accelerometerAvailable: true,
+                    gyroscopeAvailable: true,
+                    notificationsEnabled: true,
+                    batteryOptimizationExempt: false,
+                  ),
+                ),
                 deviceResourcesGatewayProvider.overrideWithValue(
                   _ResourcePreview(),
                 ),

@@ -1,3 +1,5 @@
+import '../../../../shared/widgets/app_components.dart';
+import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -58,10 +60,15 @@ class _DeviceDiagnosticsScreenState
   Widget build(BuildContext context) {
     final diagnostics = ref.watch(deviceDiagnosticsProvider);
     return Scaffold(
-      appBar: AppBar(title: const Text('Diagnóstico do aparelho')),
-      body: ListView(
+      appBar: AppHeader(title: const Text('Diagnóstico do aparelho')),
+      body: OrganizedListView(
         padding: const EdgeInsets.all(20),
         children: [
+          const SectionHeading(
+            'Confira os recursos do celular',
+            subtitle:
+                'Veja as permissões e os sensores disponíveis para o ZELO.',
+          ),
           const Text(
             'Esta consulta não coleta movimentos nem localização. '
             'Recursos disponíveis não confirmam proteção ativa.',
@@ -114,6 +121,7 @@ class _DeviceDiagnosticsScreenState
             ),
           ),
           const SizedBox(height: 16),
+          const SectionHeading('Permissões e ajustes'),
           OutlinedButton.icon(
             onPressed: diagnostics.isLoading
                 ? null
