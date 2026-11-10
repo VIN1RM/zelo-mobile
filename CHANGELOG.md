@@ -6,6 +6,10 @@ Mudanças relevantes do ZELO. A versão `1.0.0+1` permanece em desenvolvimento, 
 
 ### Adicionado
 
+- Demonstração guiada com cenário, alerta de 30 segundos, resultados por resposta e prévia fictícia do pedido de ajuda.
+- Ocorrências antigas não bloqueiam a demonstração; alertas reais e monitoramento em andamento continuam prioritários.
+- Build Android sem Jetifier, heap Gradle de 4 GB e limite de workers para evitar falta de memória no CI.
+
 - Escolha persistente de aparência (claro, escuro ou sistema) desde as telas de acesso e nos ajustes.
 - Arraste de contatos sem fundo claro no modo escuro e confirmação de encerramento com botão "Encerrar".
 
