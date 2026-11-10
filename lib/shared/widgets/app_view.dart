@@ -5,9 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/application/app_controller.dart';
 import '../../core/domain/app_failure.dart';
 import 'app_components.dart';
+import 'responsive_actions.dart';
 export '../presentation/app_labels.dart';
 export 'app_components.dart';
 export 'app_content.dart';
+export 'responsive_actions.dart';
+export 'save_changes_button.dart';
 
 class AppView extends ConsumerWidget {
   const AppView({required this.builder, super.key});
@@ -104,6 +107,7 @@ Future<bool> confirmAction(
   return await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
+          constraints: const BoxConstraints(maxWidth: 440),
           scrollable: true,
           insetPadding: const EdgeInsets.symmetric(
             horizontal: 20,
@@ -112,36 +116,51 @@ Future<bool> confirmAction(
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(28),
           ),
-          icon: Center(
-            child: IconBadge(
-              danger ? AppIcons.deleteOutline : AppIcons.infoOutlineRounded,
-              tone: danger ? AppTone.danger : AppTone.neutral,
-            ),
+          titlePadding: const EdgeInsets.fromLTRB(24, 24, 24, 12),
+          contentPadding: const EdgeInsets.fromLTRB(24, 0, 24, 20),
+          title: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconBadge(
+                danger ? AppIcons.deleteOutline : AppIcons.infoOutlineRounded,
+                tone: danger ? AppTone.danger : AppTone.neutral,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ],
           ),
-          title: Text(title, textAlign: TextAlign.center),
           content: Text(message, textAlign: TextAlign.center),
           actionsPadding: const EdgeInsets.fromLTRB(24, 8, 24, 24),
           actions: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                FilledButton(
-                  style: danger
-                      ? FilledButton.styleFrom(
-                          backgroundColor: AppTone.danger.foreground,
-                          foregroundColor: Colors.white,
-                        )
-                      : null,
-                  onPressed: () => Navigator.pop(context, true),
-                  child: Text(label),
+            SizedBox(
+              width: (MediaQuery.sizeOf(context).width - 88).clamp(0, 392),
+              child: ResponsiveActions(
+                minimumWidth: 120,
+                availableWidth: (MediaQuery.sizeOf(context).width - 88).clamp(
+                  0,
+                  392,
                 ),
-                const SizedBox(height: 8),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Cancelar'),
-                ),
-              ],
+                children: [
+                  OutlinedButton(
+                    onPressed: () => Navigator.pop(context, false),
+                    child: const Text('Cancelar'),
+                  ),
+                  FilledButton(
+                    style: danger
+                        ? FilledButton.styleFrom(
+                            backgroundColor: AppTone.danger.foreground,
+                            foregroundColor: Colors.white,
+                          )
+                        : null,
+                    onPressed: () => Navigator.pop(context, true),
+                    child: Text(label),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

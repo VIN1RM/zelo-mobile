@@ -309,6 +309,13 @@ void main() {
             }
           }
           if (screen.key == 'novo-contato') {
+            final button = find.ancestor(
+              of: find.text('Salvar contato'),
+              matching: find.byType(FilledButton),
+            );
+            expect(tester.widget<FilledButton>(button).onPressed, isNull);
+            await tester.enterText(find.byType(TextFormField).first, 'A');
+            await tester.pumpAndSettle();
             await tester.ensureVisible(find.text('Salvar contato'));
             await tester.tap(find.text('Salvar contato'));
             await tester.pumpAndSettle();

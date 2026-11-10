@@ -15,6 +15,8 @@ class UnsavedChangesGuard extends StatefulWidget {
 }
 
 class UnsavedChangesGuardState extends State<UnsavedChangesGuard> {
+  final changes = ValueNotifier<bool>(false);
+  bool get hasChanges => _dirty;
   late List<String> _saved;
   bool _dirty = false;
   bool _prompting = false;
@@ -33,11 +35,15 @@ class UnsavedChangesGuardState extends State<UnsavedChangesGuard> {
     final dirty = widget.controllers.asMap().entries.any(
       (entry) => entry.value.text != _saved[entry.key],
     );
-    if (dirty != _dirty && mounted) setState(() => _dirty = dirty);
+    if (dirty != _dirty && mounted) {
+      changes.value = dirty;
+      setState(() => _dirty = dirty);
+    }
   }
 
   Future<void> acceptChanges() async {
     _saved = widget.controllers.map((controller) => controller.text).toList();
+    changes.value = false;
     if (mounted) setState(() => _dirty = false);
     await WidgetsBinding.instance.endOfFrame;
   }
@@ -64,6 +70,7 @@ class UnsavedChangesGuardState extends State<UnsavedChangesGuard> {
     for (final controller in widget.controllers) {
       controller.removeListener(_changed);
     }
+    changes.dispose();
     super.dispose();
   }
 

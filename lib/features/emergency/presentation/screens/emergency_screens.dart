@@ -1,3 +1,4 @@
+import '../../../../core/formatting/phone_format.dart';
 import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'dart:math';
@@ -247,35 +248,44 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
               ),
             const SizedBox(height: 20),
             const SectionHeading('3. Escolha o canal'),
-            FilledButton.icon(
+            Text(
+              contact == null
+                  ? 'Copie a mensagem e escolha o destinatário no seu aplicativo.'
+                  : 'Escolha como enviar para ${contact.name}. Confira o conteúdo antes de concluir.',
+            ),
+            const SizedBox(height: 12),
+            _ShareChannelCard(
+              title: 'Abrir WhatsApp',
+              icon: Icons.chat_outlined,
+              subtitle: contact?.phone == null
+                  ? 'Este contato não tem WhatsApp cadastrado.'
+                  : formatPhone(contact!.phone),
+              available: contact?.phone != null,
+              loading: sharingChannel == 'whatsapp',
               onPressed: sharing || contact?.phone == null
                   ? null
                   : () => share('whatsapp'),
-              icon: const Icon(AppIcons.chatOutlined),
-              label: LoadingLabel(
-                loading: sharingChannel == 'whatsapp',
-                label: 'Abrir WhatsApp',
-              ),
             ),
-            const SizedBox(height: 12),
-            OutlinedButton.icon(
+            _ShareChannelCard(
+              title: 'Abrir e-mail',
+              icon: Icons.mail_outline_rounded,
+              subtitle:
+                  contact?.email ?? 'Este contato não tem e-mail cadastrado.',
+              available: contact?.email != null,
+              loading: sharingChannel == 'email',
               onPressed: sharing || contact?.email == null
                   ? null
                   : () => share('email'),
-              icon: const Icon(AppIcons.emailOutlined),
-              label: LoadingLabel(
-                loading: sharingChannel == 'email',
-                label: 'Abrir e-mail',
-              ),
             ),
-            TextButton.icon(
+            _ShareChannelCard(
+              title: 'Copiar mensagem',
+              icon: Icons.copy_rounded,
+              subtitle: 'Cole no aplicativo de sua preferência.',
+              available: true,
+              loading: sharingChannel == 'copy',
               onPressed: sharing ? null : () => share('copy'),
-              icon: const Icon(AppIcons.copy),
-              label: LoadingLabel(
-                loading: sharingChannel == 'copy',
-                label: 'Copiar mensagem',
-              ),
             ),
+            const SizedBox(height: 8),
             TextButton(
               onPressed: () =>
                   context.push('/historico/incidents/${incident.id}'),
@@ -285,5 +295,46 @@ class _HelpScreenState extends ConsumerState<HelpScreen> {
         ),
       );
     },
+  );
+}
+
+class _ShareChannelCard extends StatelessWidget {
+  const _ShareChannelCard({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.available,
+    required this.loading,
+    required this.onPressed,
+  });
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final bool available;
+  final bool loading;
+  final VoidCallback? onPressed;
+  @override
+  Widget build(BuildContext context) => Card(
+    margin: const EdgeInsets.only(bottom: 10),
+    clipBehavior: Clip.antiAlias,
+    child: ListTile(
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      enabled: available,
+      leading: Icon(icon),
+      title: Text(title),
+      subtitle: Text(subtitle),
+      onTap: onPressed,
+      trailing: loading
+          ? const SizedBox.square(
+              dimension: 22,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )
+          : Icon(
+              available
+                  ? Icons.arrow_forward_rounded
+                  : Icons.lock_outline_rounded,
+              size: 20,
+            ),
+    ),
   );
 }

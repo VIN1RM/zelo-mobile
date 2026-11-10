@@ -1,128 +1,62 @@
 # ZELO
 
-Aplicativo Android de apoio experimental à segurança de motociclistas.
-Uma sessão iniciada pelo usuário analisa movimentos localmente, apresenta
-alerta de 30 segundos diante de padrão suspeito e facilita ajuda assistida.
+Aplicativo Android de apoio à segurança de motociclistas, desenvolvido em Flutter e Kotlin.
+O usuário inicia a proteção, recebe alertas de movimentos suspeitos e escolhe como pedir ajuda.
 
-**Estado: MVP de desenvolvimento, ainda sem aceite para lançamento.** A versão
-`1.0.0+1` é a meta do produto. O detector não foi calibrado em aparelhos físicos.
-Consulte o [relatório atual e os gates de produção](docs/estado-mvp.md).
+A detecção é experimental. O aplicativo não confirma acidentes nem envia mensagens automaticamente.
 
-Para a atividade **Meu Smartphone Inteligente**, os quatro recursos obrigatórios
-estão implementados. O responsável confirmou seu funcionamento no Redmi Note 9,
-MIUI Global 13.0.2, Android 12, online e offline. Isso valida os fluxos principais
-nesse aparelho; não representa calibração do detector ou homologação comercial.
+## Funcionalidades
 
-## Implementado
+- Cadastro, login, verificação de e-mail, recuperação de senha e gerenciamento da conta.
+- Até três contatos de confiança, com contato principal, edição e teste dos canais.
+- Checklist de contatos, sensores e permissões antes do trajeto.
+- Monitoramento Android com posições Bolso/Suporte, alerta de 30 segundos e SOS manual.
+- Ajuda assistida por WhatsApp, e-mail ou cópia, com localização pontual quando disponível.
+- Histórico com busca, filtros por tipo e período, condição atual, observações, fotos e exportação.
+- Lembretes opcionais por dias e horários, salvos neste aparelho.
+- Dados locais protegidos e sincronização de metadados com Firebase.
+- Tema claro/escuro automático, diagnóstico do aparelho, demonstração e licenças.
 
-- Conta por e-mail/senha, verificação, recuperação, perfil e exclusão retomável.
-- Preparação, diagnóstico e até três contatos com prioridade e teste assistido.
-- Serviço Android foreground, perfis Bolso/Suporte, sensores e alerta durável.
-- SOS manual, GPS pontual opcional e abertura de WhatsApp/e-mail ou cópia.
-- Histórico, atualizações, notas, preservação, fotos locais e exportação.
-- SQLCipher, Outbox, sincronização de metadados, conflitos e tombstones.
-- Avisos operacionais, demonstração isolada, ajustes, privacidade e licenças.
-- Recursos do aparelho: câmera com prévia, latitude/longitude, notificação local
-  de teste e acelerômetro X/Y/Z ao vivo para a atividade acadêmica.
+Fotos e observações permanecem no aparelho. Os lembretes não iniciam a proteção e podem
+sofrer atrasos pelas restrições de bateria do Android.
 
-Roteiro dos quatro critérios e testes no celular: [trabalho da faculdade](docs/trabalho-faculdade.md).
+## Executar
 
-Abrir um destino não comprova envio ou entrega. Não há chamada automática,
-GPS contínuo ou garantia de detecção. O ZELO é uma ferramenta auxiliar e
-experimental; não substitui equipamentos e práticas de segurança.
+Requisitos: Flutter na versão de [.flutter-version](.flutter-version), Android SDK,
+JDK compatível e aparelho ou emulador Android API 26+.
 
-Fotos e notas ficam no aparelho. Firestore recebe metadados autorizados pelas
-regras. A exclusão mantém um marcador mínimo por UID para impedir recriação
-por tokens antigos, conforme [ADR-002](docs/adr/ADR-002-mvp-offline-e-servico-android.md).
-
-## Desenvolvimento
-
-Baseline Flutter **3.41.4**, Dart **3.11.1**, Android API 26+, compile/target 36.
-Riverpod/GoRouter, Firebase Auth/Firestore, SQLCipher e serviço Kotlin.
-O escopo suportado neste ciclo é Android.
+1. Configure Firebase Authentication com e-mail/senha e Cloud Firestore para o pacote `br.com.zelo.zelo_mobile`.
+2. Coloque a configuração Android em `android/app/google-services.json`.
+3. Configure o backend com [firestore.rules](firestore.rules) e [firestore.indexes.json](firestore.indexes.json).
+4. Execute:
 
 ```sh
 flutter pub get
 flutter run -d <android-device>
 ```
 
-`android/app/google-services.json` corresponde ao pacote
-`br.com.zelo.zelo_mobile`. Authentication por e-mail/senha foi habilitado pelo
-responsável. O responsável também criou o Firestore, publicou as regras e
-confirmou sincronização com registros visíveis no console. A homologação
-completa de produção continua separada dos testes acadêmicos.
-Os testes locais de backend usam exclusivamente o projeto demo dos emuladores.
-
-```text
-lib/app/        bootstrap, tema, rotas e coordenação de alertas
-lib/core/       banco, repositório, controle, plataforma e sincronização
-lib/features/   autenticação, contatos, monitoramento, emergência,
-                histórico, preparação, perfil, ajustes e recursos do aparelho
-lib/shared/     ícones, rótulos pt-BR e componentes reutilizáveis
-android/app/src/main/kotlin/   serviço, detector, journal e canais de recursos
-test/           domínio, repositório, controle, widgets e acessibilidade
-integration_test/             Android e Firebase em emuladores
-tools/firestore/              testes das regras
-```
-
-## Verificações
-
-Última execução de implementação: análise estática limpa, **69 testes Flutter**
-aprovados e integração de recursos nativos aprovada no emulador Android API 35.
-Os testes automatizados de câmera/GPS usam adaptadores substitutos; a confirmação
-física desses recursos foi relatada pelo responsável no aparelho abaixo.
-
-| Recurso | Resultado informado pelo responsável no Redmi Note 9 |
-| --- | --- |
-| Câmera | Captura, confirmação, cancelamento e nova foto funcionando |
-| GPS | Coordenadas, localização no mapa e cópia funcionando |
-| Notificação local | Funcionando em primeiro plano, segundo plano e tela bloqueada |
-| Acelerômetro | X, Y e Z atualizando ao movimentar o aparelho |
-| Rede | Quatro recursos relatados como funcionando online e offline |
-
-Permissões negadas e sua recuperação ainda precisam de confirmação no aparelho.
-O [roteiro de testes](docs/trabalho-faculdade.md) distingue esses casos dos fluxos
-já confirmados. Slides e ensaio de até 15 minutos são a próxima etapa acadêmica.
+## Validar e gerar APK
 
 ```sh
-dart format --output=none --set-exit-if-changed lib test integration_test
 flutter analyze
 flutter test
-python tools/check_secrets.py
 flutter build apk --debug --target-platform android-arm64
 ```
 
-Com JDK configurado, executar `gradlew.bat :app:testDebugUnitTest` em `android`
-(Linux: `./gradlew`). Regras e integrações: [instruções e evidências](docs/estado-mvp.md).
-O CI em `.github/workflows/flutter.yml` cobre checks Flutter, build debug,
-testes JVM e regras em emulador. Execução remota depende de envio posterior.
+O APK fica em `build/app/outputs/flutter-apk/app-debug.apk`.
+Para os testes nativos, execute `./gradlew :app:testDebugUnitTest` em `android`
+(`gradlew.bat :app:testDebugUnitTest` no Windows).
 
-Release exige chave própria em `android/key.properties`, conforme o exemplo.
-Não versionar esse arquivo nem o keystore. Não há fallback para assinatura debug.
+Release exige assinatura própria, conforme [android/key.properties.example](android/key.properties.example).
+Não versione credenciais de assinatura ou keystores.
 
-## APK para testar no celular
+## Estrutura
 
-Para o Redmi Note 9 usado nos testes, gere o pacote **ARM64**:
+- `lib/app`: inicialização, navegação e temas.
+- `lib/core`: banco local, controle da aplicação e sincronização.
+- `lib/features`: telas e regras por funcionalidade.
+- `lib/shared`: componentes reutilizáveis.
+- `android/app/src/main/kotlin`: monitoramento, sensores e lembretes nativos.
+- `test` e `integration_test`: testes automatizados.
 
-```sh
-flutter build apk --debug --target-platform android-arm64
-```
-
-O resultado fica em `build/app/outputs/flutter-apk/app-debug.apk`. O pacote de
-entrega deste incremento também está em `build/deliverables/zelo-faculdade-arm64.apk`,
-quando disponível no workspace. Arquivos de `build/` não são versionados.
-
-Ao gerar depois um APK `android-x64` para emulador, o caminho padrão
-`app-debug.apk` é sobrescrito pelo pacote do emulador. Confira a arquitetura
-ou gere ARM64 novamente antes de copiar para o celular. O comando sem `--debug`
-gera release e exige a chave de produção configurada.
-
-## Antes de lançar
-
-Ainda faltam calibração e ensaios físicos abrangentes, homologação dos fluxos
-de conta e compartilhamento, identidade e contato na política de privacidade
-e assinatura de distribuição. Ver [estado do MVP](docs/estado-mvp.md),
-[POC Android](docs/poc-android.md), [planejamento](docs/plano-implementacao.md)
-e [rastreabilidade](docs/rastreabilidade.md).
-
-Mudanças no [CHANGELOG](CHANGELOG.md). Paleta em [paleta.md](paleta.md).
+Mudanças em [CHANGELOG.md](CHANGELOG.md).

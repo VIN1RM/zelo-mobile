@@ -65,7 +65,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   prefixIcon: Icon(AppIcons.personOutlineRounded),
                 ),
               ),
-              FilledButton(
+              SaveChangesButton(
+                guard: _guard,
+                busy: data.busy,
                 onPressed: data.busy
                     ? null
                     : () async {
@@ -77,7 +79,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         );
                         if (saved) await _guard.currentState?.acceptChanges();
                       },
-                child: LoadingLabel(loading: data.busy, label: 'Salvar nome'),
+                label: 'Salvar nome',
               ),
               TextButton(
                 onPressed: data.busy

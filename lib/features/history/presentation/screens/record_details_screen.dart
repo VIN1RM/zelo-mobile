@@ -114,21 +114,29 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
               if (incident != null) ...[
                 const SizedBox(height: 16),
                 const SectionHeading('Como você está agora?'),
-                Text('Condição atual: ${outcomeLabel(incident.condition)}'),
-                Wrap(
-                  spacing: 12,
+                Text(
+                  'Condição atual: ${outcomeLabel(incident.condition)}',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.titleSmall,
+                ),
+                const SizedBox(height: 16),
+                ResponsiveActions(
                   children: [
-                    OutlinedButton(
-                      onPressed: data.busy
+                    OutlinedButton.icon(
+                      onPressed: data.busy || incident.condition == 'SAFE'
                           ? null
                           : () => uiAction(
                               context,
                               () => app.updateCondition(incident.id, 'SAFE'),
                             ),
-                      child: const Text('Estou bem'),
+                      icon: const Icon(
+                        Icons.check_circle_outline_rounded,
+                        size: 20,
+                      ),
+                      label: const Text('Estou bem'),
                     ),
-                    OutlinedButton(
-                      onPressed: data.busy
+                    OutlinedButton.icon(
+                      onPressed: data.busy || incident.condition == 'NEEDS_HELP'
                           ? null
                           : () => uiAction(
                               context,
@@ -137,16 +145,23 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
                                 'NEEDS_HELP',
                               ),
                             ),
-                      child: const Text('Preciso de ajuda'),
+                      icon: const Icon(Icons.support_agent_rounded, size: 20),
+                      label: const Text('Preciso de ajuda'),
                     ),
                   ],
                 ),
+                const SizedBox(height: 16),
                 const Text(
-                  'Atualizações posteriores não alteram o resultado original do alerta.',
+                  'Sua condição pode mudar. As atualizações preservam o resultado original do alerta.',
+                  textAlign: TextAlign.center,
                 ),
-                TextButton(
-                  onPressed: () => context.push('/ajuda/${incident.id}'),
-                  child: const Text('Abrir pedido de ajuda'),
+                const SizedBox(height: 16),
+                FilledButton.tonalIcon(
+                  onPressed: data.busy
+                      ? null
+                      : () => context.push('/ajuda/${incident.id}'),
+                  icon: const Icon(Icons.send_outlined),
+                  label: const Text('Abrir pedido de ajuda'),
                 ),
                 const SizedBox(height: 16),
                 const SectionHeading(
@@ -162,7 +177,10 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
                     labelText: 'Observações locais',
                   ),
                 ),
-                OutlinedButton(
+                SaveChangesButton(
+                  guard: _guard,
+                  busy: data.busy,
+                  outlined: true,
                   onPressed: data.busy
                       ? null
                       : () async {
@@ -178,10 +196,7 @@ class _RecordDetailsScreenState extends State<RecordDetailsScreen> {
                           );
                           if (saved) await _guard.currentState?.acceptChanges();
                         },
-                  child: LoadingLabel(
-                    loading: data.busy,
-                    label: 'Salvar observa\u00e7\u00f5es',
-                  ),
+                  label: 'Salvar observa\u00e7\u00f5es',
                 ),
                 SwitchListTile(
                   title: const Text('Preservar ocorrência'),

@@ -134,7 +134,9 @@ class _ContactFormScreenState extends State<ContactFormScreen> {
                       'Informe pelo menos um canal. Não é necessário permitir acesso à agenda do telefone.',
                     ),
                     const SizedBox(height: 24),
-                    FilledButton(
+                    SaveChangesButton(
+                      guard: _guard,
+                      busy: data.busy,
                       onPressed: data.busy
                           ? null
                           : () async {
@@ -162,10 +164,7 @@ class _ContactFormScreenState extends State<ContactFormScreen> {
                                 Navigator.pop(context);
                               }
                             },
-                      child: LoadingLabel(
-                        loading: data.busy,
-                        label: 'Salvar contato',
-                      ),
+                      label: 'Salvar contato',
                     ),
                   ],
                 ),

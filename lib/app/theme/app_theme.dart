@@ -79,7 +79,9 @@ abstract final class AppTheme {
       ),
       snackBarTheme: base.snackBarTheme.copyWith(
         backgroundColor: scheme.inverseSurface,
-        contentTextStyle: text.bodyMedium?.copyWith(color: scheme.onInverseSurface),
+        contentTextStyle: text.bodyMedium?.copyWith(
+          color: scheme.onInverseSurface,
+        ),
       ),
     );
   }

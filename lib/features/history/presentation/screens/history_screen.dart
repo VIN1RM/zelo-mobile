@@ -129,46 +129,49 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          OutlinedButton.icon(
-                            onPressed: selectPeriod,
-                            icon: const Icon(Icons.date_range_rounded),
-                            label: Text(
-                              period == null
-                                  ? 'Selecionar per\u00edodo'
-                                  : '${period!.start.day}/${period!.start.month}/${period!.start.year} a ${period!.end.day}/${period!.end.month}/${period!.end.year}',
+                      AppActionTile(
+                        icon: Icons.date_range_rounded,
+                        title: period == null
+                            ? 'Selecionar período'
+                            : 'Período selecionado',
+                        subtitle: period == null
+                            ? 'Consultar todo o histórico'
+                            : '${MaterialLocalizations.of(context).formatCompactDate(period!.start)} a ${MaterialLocalizations.of(context).formatCompactDate(period!.end)}',
+                        onTap: selectPeriod,
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (final option in const {
+                              'all': 'Todos',
+                              'sessions': 'Trajetos',
+                              'incidents': 'Ocorrências',
+                            }.entries)
+                              ChoiceChip(
+                                label: Text(option.value),
+                                selected: filter == option.key,
+                                onSelected: (_) =>
+                                    setState(() => filter = option.key),
+                              ),
+                          ],
+                        ),
+                      ),
+                      if (period != null || query.isNotEmpty || filter != 'all')
+                        Center(
+                          child: TextButton.icon(
+                            onPressed: clearFilters,
+                            icon: const Icon(
+                              Icons.filter_alt_off_outlined,
+                              size: 18,
                             ),
+                            label: const Text('Limpar filtros'),
                           ),
-                          if (period != null ||
-                              query.isNotEmpty ||
-                              filter != 'all')
-                            TextButton(
-                              onPressed: clearFilters,
-                              child: const Text('Limpar filtros'),
-                            ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (final option in const {
-                            'all': 'Todos',
-                            'sessions': 'Trajetos',
-                            'incidents': 'Ocorr\u00eancias',
-                          }.entries)
-                            ChoiceChip(
-                              label: Text(option.value),
-                              selected: filter == option.key,
-                              onSelected: (_) =>
-                                  setState(() => filter = option.key),
-                            ),
-                        ],
-                      ),
+                        ),
                       const SizedBox(height: 16),
                       Semantics(
                         liveRegion: true,

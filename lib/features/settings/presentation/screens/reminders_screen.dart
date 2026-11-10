@@ -1,3 +1,4 @@
+import '../widgets/weekday_selector.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/platform/device_permissions.dart';
@@ -79,7 +80,8 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
 
   Future<void> save() async {
     final uid = _uid;
-    if (_busy ||
+    if (_guard.currentState?.hasChanges != true ||
+        _busy ||
         uid == null ||
         uid != ref.read(authUserProvider).asData?.value?.id) {
       return;
@@ -190,45 +192,62 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                 ),
               ),
               const SizedBox(height: 16),
-              const SectionHeading('Dias da semana'),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [
-                  for (final entry in const {
-                    1: 'Seg',
-                    2: 'Ter',
-                    3: 'Qua',
-                    4: 'Qui',
-                    5: 'Sex',
-                    6: 'Sáb',
-                    7: 'Dom',
-                  }.entries)
-                    FilterChip(
-                      label: Text(entry.value),
-                      selected: _days.contains(entry.key),
-                      onSelected: _busy
+              const SectionHeading(
+                'Dias da semana',
+                subtitle: 'Escolha quando você costuma sair.',
+              ),
+              SectionCard(
+                child: Column(
+                  children: [
+                    WeekdaySelector(
+                      selected: _days,
+                      onChanged: _busy
                           ? null
-                          : (selected) => change(() {
-                              _days = selected
-                                  ? ([..._days, entry.key]..sort())
-                                  : _days
-                                        .where((value) => value != entry.key)
-                                        .toList();
-                            }),
+                          : (days) => change(() => _days = days),
                     ),
-                ],
+                    const SizedBox(height: 12),
+                    Wrap(
+                      alignment: WrapAlignment.center,
+                      spacing: 8,
+                      children: [
+                        TextButton(
+                          onPressed: _busy
+                              ? null
+                              : () => change(() => _days = [1, 2, 3, 4, 5]),
+                          child: const Text('Dias úteis'),
+                        ),
+                        TextButton(
+                          onPressed: _busy
+                              ? null
+                              : () =>
+                                    change(() => _days = [1, 2, 3, 4, 5, 6, 7]),
+                          child: const Text('Todos os dias'),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 20),
-              const SectionHeading('Horários'),
+              SectionHeading(
+                'Horários',
+                subtitle: '${_minutes.length} de 3 horários adicionados.',
+              ),
               for (var index = 0; index < _minutes.length; index++)
                 Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  clipBehavior: Clip.antiAlias,
                   child: ListTile(
-                    leading: const Icon(Icons.schedule),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    leading: const IconBadge(Icons.schedule_rounded),
                     title: Text(
                       '${(_minutes[index] ~/ 60).toString().padLeft(2, '0')}:${(_minutes[index] % 60).toString().padLeft(2, '0')}',
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
-                    subtitle: const Text('Toque para alterar'),
+                    subtitle: const Text('Toque para ajustar o horário'),
                     onTap: _busy ? null : () => pickTime(index),
                     trailing: IconButton(
                       tooltip: 'Remover horário',
@@ -242,9 +261,9 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                   ),
                 ),
               if (_minutes.length < 3)
-                OutlinedButton.icon(
+                FilledButton.tonalIcon(
                   onPressed: _busy ? null : () => pickTime(),
-                  icon: const Icon(Icons.add),
+                  icon: const Icon(Icons.add_circle_outline_rounded),
                   label: const Text('Adicionar horário'),
                 ),
               const SizedBox(height: 20),
@@ -273,9 +292,11 @@ class _RemindersScreenState extends ConsumerState<RemindersScreen> {
                 ),
               ],
               const SizedBox(height: 20),
-              FilledButton(
-                onPressed: _busy ? null : save,
-                child: LoadingLabel(loading: _busy, label: 'Salvar lembretes'),
+              SaveChangesButton(
+                guard: _guard,
+                busy: _busy,
+                label: 'Salvar lembretes',
+                onPressed: save,
               ),
             ],
           ),
