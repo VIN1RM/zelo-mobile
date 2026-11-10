@@ -1,3 +1,4 @@
+import '../../../../shared/widgets/appearance_selector.dart';
 import '../widgets/about_dialog.dart';
 import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
@@ -19,6 +20,14 @@ class SettingsScreen extends StatelessWidget {
             'Do seu jeito',
             subtitle:
                 'Cuide da sua conta e deixe o aparelho pronto para o próximo trajeto.',
+          ),
+          const Card(
+            child: ListTile(
+              leading: Icon(Icons.palette_outlined),
+              title: Text('Aparência'),
+              subtitle: Text('Modo claro, escuro ou seguindo o celular'),
+              trailing: AppearanceSelector(),
+            ),
           ),
           AppActionTile(
             icon: AppIcons.personOutlineRounded,

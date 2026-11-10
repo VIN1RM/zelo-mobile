@@ -57,6 +57,14 @@ class ContactsScreen extends StatelessWidget {
         child: ReorderableListView.builder(
           padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
           buildDefaultDragHandles: false,
+          proxyDecorator: (child, index, animation) => AnimatedBuilder(
+            animation: animation,
+            child: child,
+            builder: (context, child) => Transform.scale(
+              scale: 1 + 0.02 * Curves.easeOut.transform(animation.value),
+              child: Material(type: MaterialType.transparency, child: child),
+            ),
+          ),
           header: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [

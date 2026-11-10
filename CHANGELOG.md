@@ -6,6 +6,9 @@ Mudanças relevantes do ZELO. A versão `1.0.0+1` permanece em desenvolvimento, 
 
 ### Adicionado
 
+- Escolha persistente de aparência (claro, escuro ou sistema) desde as telas de acesso e nos ajustes.
+- Arraste de contatos sem fundo claro no modo escuro e confirmação de encerramento com botão "Encerrar".
+
 - Foto opcional de contatos por câmera/galeria, com prévia, remoção, redução e cache no banco local protegido.
 - Sincronização de miniaturas privadas de até 64 KB em documentos separados no Firestore, sem dependência de Firebase Storage.
 - Regras de miniaturas por conta verificada, limite de tamanho/formato, exclusão de imagens antigas e bloqueio de gravação durante exclusão da conta.

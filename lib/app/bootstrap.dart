@@ -1,3 +1,4 @@
+import 'theme/theme_mode_provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,6 +16,7 @@ final firebaseInitializationProvider = FutureProvider<void>((ref) async {
     throw UnsupportedError('Only Android is configured for the ZELO MVP.');
   }
   // Android resources are generated from android/app/google-services.json.
+  await ref.read(themeModeProvider.notifier).restore();
   await Firebase.initializeApp();
   FirebaseFirestore.instance.settings = const Settings(
     persistenceEnabled: false,
@@ -34,7 +36,7 @@ class ZeloBootstrap extends ConsumerWidget {
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light,
       darkTheme: AppTheme.dark,
-      themeMode: ThemeMode.system,
+      themeMode: ref.watch(themeModeProvider),
       locale: const Locale('pt', 'BR'),
       supportedLocales: const [Locale('pt', 'BR')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,

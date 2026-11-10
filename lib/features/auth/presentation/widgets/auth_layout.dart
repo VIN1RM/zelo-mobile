@@ -1,3 +1,4 @@
+import '../../../../shared/widgets/appearance_selector.dart';
 import '../../../../shared/widgets/app_header.dart';
 import '../../../../shared/presentation/app_icons.dart';
 import 'package:flutter/material.dart';
@@ -21,7 +22,10 @@ class AuthLayout extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppHeader(title: Text(headerTitle ?? title)),
+    appBar: AppHeader(
+      title: Text(headerTitle ?? title),
+      actions: const [AppearanceSelector()],
+    ),
     body: SafeArea(
       top: false,
       child: Center(

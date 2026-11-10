@@ -104,7 +104,7 @@ Future<bool> confirmAction(
           : title.startsWith('Sair')
           ? 'Sair da conta'
           : title.startsWith('Encerrar')
-          ? 'Encerrar proteção'
+          ? 'Encerrar'
           : 'Continuar');
   return await showDialog<bool>(
         context: context,
